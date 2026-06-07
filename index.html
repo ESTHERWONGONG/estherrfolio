@@ -54,6 +54,38 @@
     body {
       overflow-x: hidden;
       overflow-y: auto;
+      cursor: none;
+    }
+
+    .cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      transform: translate(-50%, -50%);
+      transition: width 0.15s ease, height 0.15s ease;
+    }
+
+    .cursor-default {
+      width: 48px;
+      height: 48px;
+      background-image: url("outputs/assets/cursor/cursor-default.svg");
+    }
+
+    .cursor-hover {
+      width: 56px;
+      height: 56px;
+      background-image: url("outputs/assets/cursor/cursor-hover.svg");
+    }
+
+    .cursor-click {
+      width: 64px;
+      height: 64px;
+      background-image: url("outputs/assets/cursor/cursor-click.svg");
     }
 
     #bgCanvas {
@@ -64,6 +96,16 @@
       height: 100dvh;
       z-index: 0;
       pointer-events: none;
+    }
+
+    #cursor-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      pointer-events: none;
+      z-index: 10;
     }
 
     .pages {
@@ -319,6 +361,8 @@
   </style>
 </head>
 <body>
+  <div class="cursor cursor-default" id="cursor" aria-hidden="true"></div>
+
   <div class="loader" id="loader">
     <p class="loader__percent" id="loaderPercent">0%</p>
     <div class="loader__bar"><span id="loaderProgress"></span></div>
@@ -326,6 +370,7 @@
   </div>
 
   <canvas id="bgCanvas"></canvas>
+  <canvas id="cursor-canvas"></canvas>
   <audio id="bgAudio" src="outputs/assets/videos/hero-video.mp4" preload="auto"></audio>
 
   <header class="nav">
@@ -785,11 +830,119 @@
     });
 
     /* ═══════════════════════════════════════════
+       自定义光标（default / hover / click）
+       ═══════════════════════════════════════════ */
+    const cursor = document.getElementById("cursor");
+    const cursorCanvas = document.getElementById("cursor-canvas");
+    const cursorCtx = cursorCanvas.getContext("2d");
+    const CURSOR_HOVER_SELECTOR = "a, button, [data-cursor-hover]";
+    const CURSOR_TRAIL = {
+      length: 15,
+      lerpFactor: 0.2,
+      maxRadius: 8,
+    };
+
+    let isPointerDown = false;
+    let isOverInteractive = false;
+    let cursorTrailVisible = true;
+    const trailPoints = [];
+    const mouse = { x: 0, y: 0 };
+
+    function resizeCursorCanvas() {
+      cursorCanvas.width = window.innerWidth;
+      cursorCanvas.height = window.innerHeight;
+    }
+
+    function setCursorState(state) {
+      cursor.classList.remove("cursor-default", "cursor-hover", "cursor-click");
+      cursor.classList.add(`cursor-${state}`);
+    }
+
+    function updateCursorState() {
+      if (isPointerDown) {
+        setCursorState("click");
+      } else if (isOverInteractive) {
+        setCursorState("hover");
+      } else {
+        setCursorState("default");
+      }
+    }
+
+    function isInteractiveTarget(target) {
+      return target instanceof Element && Boolean(target.closest(CURSOR_HOVER_SELECTOR));
+    }
+
+    function drawCursorTrail() {
+      cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
+
+      if (cursorTrailVisible) {
+        trailPoints.push({ x: mouse.x, y: mouse.y });
+        if (trailPoints.length > CURSOR_TRAIL.length) trailPoints.shift();
+
+        for (let i = 0; i < trailPoints.length; i++) {
+          const p = trailPoints[i];
+
+          if (i > 0) {
+            p.x += (trailPoints[i - 1].x - p.x) * CURSOR_TRAIL.lerpFactor;
+            p.y += (trailPoints[i - 1].y - p.y) * CURSOR_TRAIL.lerpFactor;
+          }
+
+          const alpha = (i + 1) / trailPoints.length;
+          cursorCtx.fillStyle = `rgba(191, 239, 255, ${alpha * 0.55})`;
+          cursorCtx.beginPath();
+          cursorCtx.arc(p.x, p.y, CURSOR_TRAIL.maxRadius * alpha, 0, Math.PI * 2);
+          cursorCtx.fill();
+        }
+      }
+
+      requestAnimationFrame(drawCursorTrail);
+    }
+
+    document.addEventListener("pointermove", (event) => {
+      mouse.x = event.clientX;
+      mouse.y = event.clientY;
+      cursor.style.left = `${event.clientX}px`;
+      cursor.style.top = `${event.clientY}px`;
+      isOverInteractive = isInteractiveTarget(event.target);
+      updateCursorState();
+    });
+
+    document.addEventListener("pointerdown", () => {
+      isPointerDown = true;
+      updateCursorState();
+    });
+
+    document.addEventListener("pointerup", () => {
+      isPointerDown = false;
+      updateCursorState();
+    });
+
+    document.addEventListener("pointerleave", (event) => {
+      if (event.target === document.documentElement) {
+        cursor.style.opacity = "0";
+        cursorTrailVisible = false;
+        trailPoints.length = 0;
+      }
+    });
+
+    document.addEventListener("pointerenter", () => {
+      cursor.style.opacity = "1";
+      cursorTrailVisible = true;
+    });
+
+    setCursorState("default");
+    resizeCursorCanvas();
+    drawCursorTrail();
+
+    /* ═══════════════════════════════════════════
        初始化
        ═══════════════════════════════════════════ */
     resizeCanvas();
     updateSoundToggleUI();
-    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      resizeCursorCanvas();
+    });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("pointerdown", () => syncAudio(), { once: true });
 
