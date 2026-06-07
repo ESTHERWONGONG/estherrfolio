@@ -3,17 +3,714 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portfolio</title>
-  <link rel="stylesheet" href="style.css">
+  <title>URANUSN — Portfolio</title>
+  <style>
+    @font-face {
+      font-family: "Cormorant Garamond";
+      src: url("outputs/assets/type/CormorantGaramond-VariableFont_wght.ttf") format("truetype");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Cormorant Garamond";
+      src: url("outputs/assets/type/CormorantGaramond-Italic-VariableFont_wght.ttf") format("truetype");
+      font-weight: 100 900;
+      font-style: italic;
+      font-display: swap;
+    }
+
+    :root {
+      --text: #eef8ff;
+      --text-dim: rgba(238, 248, 255, 0.62);
+      --gold: #d4b87a;
+      --gold-dim: rgba(212, 184, 122, 0.45);
+      --nav-h: 72px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      /* proximity：Page 1/2 边界可吸附，Page 2 内部可自由 scrub */
+      scroll-snap-type: y proximity;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      background: #000;
+      color: var(--text);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .pages {
+      position: relative;
+      z-index: 1;
+    }
+
+    .page,
+    #page-1,
+    #page-2 {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: transparent;
+      position: relative;
+    }
+
+    #page-1,
+    #page-2 {
+      scroll-snap-align: start;
+    }
+
+    /* 进入 Page 1 时强制停住；Page 2 不设 stop，便于继续滚动驱动帧序列 */
+    #page-1 {
+      scroll-snap-stop: always;
+    }
+
+    .page__content {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      width: min(88vw, 920px);
+      text-align: center;
+      opacity: 0;
+      will-change: transform, opacity;
+      pointer-events: none;
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav-h);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(24px, 4vw, 64px);
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.42), transparent);
+      pointer-events: auto;
+    }
+
+    .nav__logo {
+      height: clamp(28px, 4vw, 40px);
+      width: auto;
+      opacity: 0.95;
+    }
+
+    .nav__links {
+      display: flex;
+      gap: clamp(20px, 3vw, 40px);
+      list-style: none;
+    }
+
+    .nav__links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: clamp(13px, 1.2vw, 15px);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      transition: color 0.3s ease;
+    }
+
+    .nav__links a:hover,
+    .nav__links a.is-active {
+      color: var(--text);
+    }
+
+    .page__title {
+      font-size: clamp(42px, 7vw, 82px);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.05;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      text-shadow: 0 2px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    .page__subtitle {
+      margin-top: clamp(14px, 2vh, 24px);
+      font-size: clamp(15px, 1.8vw, 20px);
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .page__btn {
+      display: inline-block;
+      margin-top: clamp(28px, 4vh, 48px);
+      padding: 14px 34px;
+      border: 1px solid var(--gold-dim);
+      border-radius: 999px;
+      color: var(--gold);
+      font-size: clamp(13px, 1.2vw, 15px);
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      background: rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(4px);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: border-color 0.3s ease, background 0.3s ease;
+    }
+
+    .page__btn:hover {
+      border-color: var(--gold);
+      background: rgba(212, 184, 122, 0.08);
+    }
+
+    .loader {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      background: #000;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    .loader.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader__bar {
+      width: min(320px, 72vw);
+      height: 3px;
+      background: rgba(255, 255, 255, 0.15);
+      overflow: hidden;
+      border-radius: 2px;
+    }
+
+    .loader__bar span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: var(--gold);
+      transition: width 0.15s ease;
+      border-radius: 2px;
+    }
+
+    .loader__text {
+      font-size: 14px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(238, 248, 255, 0.82);
+    }
+
+    .loader__percent {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+    }
+
+    .scroll-hint {
+      position: fixed;
+      left: 50%;
+      bottom: clamp(20px, 4vh, 36px);
+      transform: translateX(-50%);
+      z-index: 15;
+      font-size: 11px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(238, 248, 255, 0.38);
+      pointer-events: none;
+      animation: hint-pulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes hint-pulse {
+      0%, 100% { opacity: 0.35; transform: translateX(-50%) translateY(0); }
+      50% { opacity: 0.7; transform: translateX(-50%) translateY(6px); }
+    }
+  </style>
 </head>
 <body>
-  <div class="cursor cursor-default" id="cursor" aria-hidden="true"></div>
-
-  <div class="pages">
-    <section class="page page--1" id="page-1"></section>
-    <section class="page page--2" id="page-2"></section>
+  <div class="loader" id="loader">
+    <p class="loader__percent" id="loaderPercent">0%</p>
+    <div class="loader__bar"><span id="loaderProgress"></span></div>
+    <p class="loader__text" id="loaderText">Loading frames 0 / 563</p>
   </div>
 
-  <script src="script.js"></script>
+  <canvas id="bgCanvas"></canvas>
+
+  <header class="nav">
+    <img class="nav__logo" src="outputs/assets/images/page1/logo.png" alt="URANUSN">
+    <ul class="nav__links" id="navLinks">
+      <li><a href="#" data-node="0">Introduction</a></li>
+      <li><a href="#" data-node="1">Portfolio</a></li>
+    </ul>
+  </header>
+
+  <main class="pages">
+    <section class="page" id="page-1">
+      <div class="page__content" id="page1Content">
+        <h1 class="page__title">Beyond the Silence</h1>
+        <p class="page__subtitle">A cinematic prelude to URANUSN</p>
+        <button class="page__btn" type="button">Begin Journey</button>
+      </div>
+    </section>
+    <section class="page" id="page-2">
+      <div class="page__content" id="page2Content">
+        <h1 class="page__title">Portfolio</h1>
+        <p class="page__subtitle">Selected works across film, motion, and design</p>
+        <button class="page__btn" type="button">View Projects</button>
+      </div>
+    </section>
+  </main>
+
+  <p class="scroll-hint" id="scrollHint">Scroll to explore</p>
+
+  <script>
+    /* ═══════════════════════════════════════════
+       可调参数 CONFIG
+       ═══════════════════════════════════════════ */
+    const CONFIG = {
+      fps: 30,
+      totalFrames: 563,
+      page1EndFrame: 150,   // 0s → 5s
+      page2StartFrame: 151, // 5s 起
+      page2EndFrame: 300,   // 5s → 10s
+      videoFile: "hero-video.mp4",
+      framePath: (i) => `frames/frame_${String(i).padStart(4, "0")}.webp`,
+
+      // 文字动画
+      textFadeInStart: 0.68,
+      textFadeInEnd: 1.0,
+      textFadeOutRatio: 0.14,
+      textSlideDistance: 42,
+      textTransitionSmooth: 0.12,
+
+      // 预加载
+      preloadAhead: 30,
+    };
+
+    /* ═══════════════════════════════════════════
+       时间节点（hero-video.mp4，30fps）
+       Page 1：帧 1–150（0s → 5s）自动播放
+       Page 2：帧 151–300（5s → 10s）进入后自动播放
+       ═══════════════════════════════════════════ */
+    const NODES = [
+      {
+        startFrame: 1,
+        endFrame: 150,
+        navLabel: "Introduction",
+        title: "Beyond the Silence",
+        subtitle: "A cinematic prelude to URANUSN",
+        cta: "Begin Journey",
+      },
+      {
+        startFrame: 151,
+        endFrame: 300,
+        navLabel: "Portfolio",
+        title: "Portfolio",
+        subtitle: "Selected works across film, motion, and design",
+        cta: "View Projects",
+      },
+    ];
+
+    /* ═══════════════════════════════════════════
+       DOM & State
+       ═══════════════════════════════════════════ */
+    const canvas = document.getElementById("bgCanvas");
+    const ctx = canvas.getContext("2d");
+    const page1 = document.getElementById("page-1");
+    const page2 = document.getElementById("page-2");
+    const page1Content = document.getElementById("page1Content");
+    const page2Content = document.getElementById("page2Content");
+    const loader = document.getElementById("loader");
+    const loaderProgress = document.getElementById("loaderProgress");
+    const loaderText = document.getElementById("loaderText");
+    const loaderPercent = document.getElementById("loaderPercent");
+    const navLinks = document.getElementById("navLinks");
+    const scrollHint = document.getElementById("scrollHint");
+
+    const frames = new Array(CONFIG.totalFrames + 1);
+    const loadingPromises = new Map();
+    let loadedFrameCount = 0;
+
+    let introFrame = 1;
+    let page2Frame = CONFIG.page2StartFrame;
+    let introDone = false;
+    let page2Done = false;
+    let wasOnPage1 = true;
+    let scrollDirection = 1;
+    let currentFrame = 1;
+    let displayedFrame = 1;
+    let isReady = false;
+    let lastActiveNode = -1;
+
+    const pageContentState = {
+      page1: { opacity: 0, translateY: 0 },
+      page2: { opacity: 0, translateY: 0 },
+    };
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function getPage2FrameSpan() {
+      return CONFIG.page2EndFrame - CONFIG.page2StartFrame;
+    }
+
+    function isOnPage1() {
+      return window.scrollY < page2.offsetTop - 2;
+    }
+
+    function getPage2PlaybackProgress() {
+      if (page2Done) return 1;
+      return clamp((page2Frame - CONFIG.page2StartFrame) / getPage2FrameSpan(), 0, 1);
+    }
+
+    function getActiveNodeIndex() {
+      return isOnPage1() ? 0 : 1;
+    }
+
+    /* ═══════════════════════════════════════════
+       帧加载
+       ═══════════════════════════════════════════ */
+    function loadImage(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.decoding = "async";
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(`Failed: ${url}`));
+        img.src = url;
+      });
+    }
+
+    function updateLoaderUI() {
+      const pct = (loadedFrameCount / CONFIG.totalFrames) * 100;
+      loaderProgress.style.width = `${pct}%`;
+      loaderPercent.textContent = `${Math.round(pct)}%`;
+      loaderText.textContent = `Loading frames ${loadedFrameCount} / ${CONFIG.totalFrames}`;
+    }
+
+    function markFrameLoaded() {
+      loadedFrameCount = 0;
+      for (let i = 1; i <= CONFIG.totalFrames; i++) {
+        if (frames[i]) loadedFrameCount++;
+      }
+      updateLoaderUI();
+      if (loadedFrameCount >= CONFIG.totalFrames) {
+        isReady = true;
+        loaderPercent.textContent = "100%";
+        loaderText.textContent = "Ready";
+        setTimeout(() => loader.classList.add("is-hidden"), 600);
+      }
+    }
+
+    async function ensureFrame(index) {
+      const idx = Math.max(1, Math.min(CONFIG.totalFrames, Math.round(index)));
+      if (frames[idx]) return frames[idx];
+      if (loadingPromises.has(idx)) return loadingPromises.get(idx);
+
+      const promise = loadImage(CONFIG.framePath(idx))
+        .then((img) => {
+          frames[idx] = img;
+          loadingPromises.delete(idx);
+          markFrameLoaded();
+          return img;
+        })
+        .catch((err) => {
+          loadingPromises.delete(idx);
+          console.warn(err.message);
+          return null;
+        });
+
+      loadingPromises.set(idx, promise);
+      return promise;
+    }
+
+    async function preloadFrames() {
+      const concurrency = 8;
+
+      for (let start = 1; start <= CONFIG.totalFrames; start += concurrency) {
+        const end = Math.min(CONFIG.totalFrames, start + concurrency - 1);
+        const batch = [];
+
+        for (let i = start; i <= end; i++) {
+          batch.push(ensureFrame(i));
+        }
+
+        await Promise.all(batch);
+      }
+
+      if (loadedFrameCount < CONFIG.totalFrames) {
+        loaderText.textContent = `Loaded ${loadedFrameCount} / ${CONFIG.totalFrames}, continuing…`;
+      }
+    }
+
+    function preloadAroundFrame(frameIndex) {
+      const center = Math.round(frameIndex);
+      for (let i = center - CONFIG.preloadAhead; i <= center + CONFIG.preloadAhead; i++) {
+        if (i >= 1 && i <= CONFIG.totalFrames && !frames[i] && !loadingPromises.has(i)) {
+          ensureFrame(i);
+        }
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+       Canvas 渲染
+       ═══════════════════════════════════════════ */
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function drawCover(img) {
+      if (!img) return;
+      const cw = window.innerWidth;
+      const ch = window.innerHeight;
+      const ir = img.width / img.height;
+      const cr = cw / ch;
+      let dw, dh, dx, dy;
+
+      if (ir > cr) {
+        dh = ch;
+        dw = dh * ir;
+        dx = (cw - dw) * 0.5;
+        dy = 0;
+      } else {
+        dw = cw;
+        dh = dw / ir;
+        dx = 0;
+        dy = (ch - dh) * 0.5;
+      }
+
+      ctx.drawImage(img, dx, dy, dw, dh);
+    }
+
+    function renderFrame(frameIndex) {
+      const idx = Math.max(1, Math.min(CONFIG.totalFrames, Math.round(frameIndex)));
+      const img = frames[idx];
+
+      if (!img) {
+        ensureFrame(idx).then((loaded) => {
+          if (loaded && Math.round(currentFrame) === idx) {
+            drawCover(loaded);
+            displayedFrame = idx;
+          }
+        });
+        return;
+      }
+
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      drawCover(img);
+      displayedFrame = idx;
+    }
+
+    function smoothstep(edge0, edge1, x) {
+      const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0 || 1)));
+      return t * t * (3 - 2 * t);
+    }
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function applyPageContent(el, state, targetOpacity, targetY) {
+      state.opacity = lerp(state.opacity, targetOpacity, CONFIG.textTransitionSmooth);
+      state.translateY = lerp(state.translateY, targetY, CONFIG.textTransitionSmooth);
+      el.style.opacity = state.opacity.toFixed(3);
+      el.style.transform = `translate(-50%, calc(-50% + ${state.translateY.toFixed(2)}px))`;
+      el.style.pointerEvents = state.opacity > 0.4 ? "auto" : "none";
+    }
+
+    function updateContentUI() {
+      const activeNode = getActiveNodeIndex();
+      const page2Progress = isOnPage1() ? 0 : getPage2PlaybackProgress();
+      const page1Progress = introDone
+        ? 1
+        : clamp(introFrame / CONFIG.page1EndFrame, 0, 1);
+
+      if (activeNode !== lastActiveNode) {
+        lastActiveNode = activeNode;
+        navLinks.querySelectorAll("a").forEach((a) => {
+          a.classList.toggle("is-active", Number(a.dataset.node) === activeNode);
+        });
+      }
+
+      let page1Opacity = 0;
+      let page1Y = scrollDirection > 0 ? CONFIG.textSlideDistance : -CONFIG.textSlideDistance;
+      let page2Opacity = 0;
+      let page2Y = scrollDirection > 0 ? CONFIG.textSlideDistance : -CONFIG.textSlideDistance;
+
+      if (isOnPage1()) {
+        const fadeIn = smoothstep(CONFIG.textFadeInStart, CONFIG.textFadeInEnd, page1Progress);
+        const fadeOut = page1Progress < CONFIG.textFadeOutRatio
+          ? page1Progress / CONFIG.textFadeOutRatio
+          : 1;
+        page1Opacity = fadeIn * fadeOut;
+        const slideBase = (1 - fadeIn) * CONFIG.textSlideDistance;
+        page1Y = scrollDirection > 0 ? slideBase : -slideBase;
+      } else {
+        const fadeIn = smoothstep(CONFIG.textFadeInStart, CONFIG.textFadeInEnd, page2Progress);
+        const fadeOut = page2Progress < CONFIG.textFadeOutRatio
+          ? page2Progress / CONFIG.textFadeOutRatio
+          : 1;
+        page2Opacity = fadeIn * fadeOut;
+        const slideBase = (1 - fadeIn) * CONFIG.textSlideDistance;
+        page2Y = scrollDirection > 0 ? slideBase : -slideBase;
+
+        const page1FadeOut = 1 - smoothstep(0, CONFIG.textFadeOutRatio, page2Progress);
+        page1Opacity = page1FadeOut * 0.35;
+        page1Y = scrollDirection > 0 ? -CONFIG.textSlideDistance * 0.5 : CONFIG.textSlideDistance * 0.5;
+      }
+
+      applyPageContent(page1Content, pageContentState.page1, page1Opacity, page1Y);
+      applyPageContent(page2Content, pageContentState.page2, page2Opacity, page2Y);
+
+      if (isOnPage1()) {
+        scrollHint.textContent = introDone ? "Scroll to page 2" : "Scroll to explore";
+        scrollHint.style.opacity = String(introDone ? 0.5 : Math.max(0, 0.4 - page1Progress * 0.4));
+      } else {
+        scrollHint.style.opacity = String(Math.max(0, 0.5 - page2Progress));
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+       播放 & 主循环
+       ═══════════════════════════════════════════ */
+    let lastScrollY = window.scrollY;
+
+    function updatePlayback() {
+      const onPage1 = isOnPage1();
+
+      if (onPage1) {
+        if (!wasOnPage1) {
+          page2Frame = CONFIG.page2StartFrame;
+          page2Done = false;
+        }
+        wasOnPage1 = true;
+
+        if (!introDone) {
+          introFrame += CONFIG.fps / 60;
+          if (introFrame >= CONFIG.page1EndFrame) {
+            introFrame = CONFIG.page1EndFrame;
+            introDone = true;
+          }
+          currentFrame = introFrame;
+        } else {
+          currentFrame = CONFIG.page1EndFrame;
+        }
+        return;
+      }
+
+      if (wasOnPage1) {
+        page2Frame = CONFIG.page2StartFrame;
+        page2Done = false;
+        introDone = true;
+      }
+      wasOnPage1 = false;
+
+      if (!page2Done) {
+        page2Frame += CONFIG.fps / 60;
+        if (page2Frame >= CONFIG.page2EndFrame) {
+          page2Frame = CONFIG.page2EndFrame;
+          page2Done = true;
+        }
+      }
+      currentFrame = page2Frame;
+    }
+
+    function onScroll() {
+      const currentScrollY = window.scrollY;
+      scrollDirection = currentScrollY > lastScrollY ? 1 : currentScrollY < lastScrollY ? -1 : scrollDirection;
+      lastScrollY = currentScrollY;
+    }
+
+    function tick() {
+      updatePlayback();
+
+      preloadAroundFrame(currentFrame);
+
+      if (Math.round(displayedFrame) !== Math.round(currentFrame)) {
+        renderFrame(currentFrame);
+      }
+
+      updateContentUI();
+      requestAnimationFrame(tick);
+    }
+
+    /* ═══════════════════════════════════════════
+       导航跳转
+       ═══════════════════════════════════════════ */
+    function jumpToNode(nodeIndex) {
+      if (nodeIndex === 0) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
+      }
+    }
+
+    navLinks.addEventListener("click", (event) => {
+      const link = event.target.closest("a[data-node]");
+      if (!link) return;
+      event.preventDefault();
+      jumpToNode(Number(link.dataset.node));
+    });
+
+    /* ═══════════════════════════════════════════
+       初始化
+       ═══════════════════════════════════════════ */
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    requestAnimationFrame(tick);
+
+    preloadFrames().then(() => {
+      introFrame = 1;
+      page2Frame = CONFIG.page2StartFrame;
+      introDone = false;
+      page2Done = false;
+      wasOnPage1 = true;
+      currentFrame = 1;
+      renderFrame(currentFrame);
+    });
+
+    /*
+      拆帧命令（在项目根目录执行）：
+      ffmpeg -y -i "outputs/assets/videos/hero-video.mp4" -an \
+        -vf "fps=30,scale=1920:-1" -c:v libwebp -q:v 72 -compression_level 4 \
+        frames/frame_%04d.webp
+
+      本地运行：
+      python3 -m http.server 8123
+    */
+  </script>
 </body>
 </html>
