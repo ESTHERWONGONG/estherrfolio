@@ -112,7 +112,6 @@
       z-index: 20;
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 0 clamp(24px, 4vw, 64px);
       background: linear-gradient(to bottom, rgba(0, 0, 0, 0.42), transparent);
       pointer-events: auto;
@@ -125,23 +124,45 @@
     }
 
     .nav__links {
+      position: absolute;
+      right: clamp(24px, 4vw, 64px);
+      top: 50%;
+      transform: translateY(-50%);
       display: flex;
-      gap: clamp(20px, 3vw, 40px);
+      align-items: center;
+      justify-content: flex-end;
+      gap: clamp(14px, 2vw, 22px);
       list-style: none;
     }
 
     .nav__links a {
-      color: var(--text-dim);
-      text-decoration: none;
-      font-size: clamp(13px, 1.2vw, 15px);
+      color: #ffe899;
+      text-decoration: underline;
+      text-underline-offset: 0.32em;
+      text-decoration-thickness: 0.5px;
+      font-size: clamp(15px, 1.38vw, 17px);
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      transition: color 0.3s ease;
+      text-shadow: 0 0 2px rgba(255, 255, 255, 0.3);
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
 
     .nav__links a:hover,
     .nav__links a.is-active {
-      color: var(--text);
+      color: #ffe899;
+      text-shadow:
+        0 0 2px rgba(255, 255, 255, 0.3),
+        0 0 10px rgba(255, 255, 255, 0.18);
+    }
+
+    .nav__sep {
+      width: 3.5px;
+      height: 3.5px;
+      border-radius: 50%;
+      background: #ffe899;
+      box-shadow: 0 0 2px rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+      pointer-events: none;
     }
 
     .page__title {
@@ -244,14 +265,14 @@
       font-size: 11px;
       letter-spacing: 0.32em;
       text-transform: uppercase;
-      color: rgba(238, 248, 255, 0.38);
+      color: rgba(238, 248, 255, 0.46);
       pointer-events: none;
       animation: hint-pulse 2.4s ease-in-out infinite;
     }
 
     @keyframes hint-pulse {
-      0%, 100% { opacity: 0.35; transform: translateX(-50%) translateY(0); }
-      50% { opacity: 0.7; transform: translateX(-50%) translateY(6px); }
+      0%, 100% { opacity: 0.42; transform: translateX(-50%) translateY(0); }
+      50% { opacity: 0.84; transform: translateX(-50%) translateY(6px); }
     }
   </style>
 </head>
@@ -269,6 +290,7 @@
     <img class="nav__logo" src="outputs/assets/images/page1/logo.png" alt="URANUSN">
     <ul class="nav__links" id="navLinks">
       <li><a href="#" data-node="0">INTRO</a></li>
+      <li class="nav__sep" aria-hidden="true"></li>
       <li><a href="#" id="soundToggle">MUTE</a></li>
     </ul>
   </header>
@@ -594,10 +616,10 @@
       applyPageContent(page2Content, pageContentState.page2, page2Opacity, page2Y);
 
       if (isOnPage1()) {
-        scrollHint.textContent = introDone ? "Scroll to page 2" : "Scroll to explore";
-        scrollHint.style.opacity = String(introDone ? 0.5 : Math.max(0, 0.4 - page1Progress * 0.4));
+        scrollHint.textContent = introDone ? "Scroll down" : "Scroll to explore";
+        scrollHint.style.opacity = String(introDone ? 0.6 : Math.max(0, 0.48 - page1Progress * 0.48));
       } else {
-        scrollHint.style.opacity = String(Math.max(0, 0.5 - page2Progress));
+        scrollHint.style.opacity = String(Math.max(0, 0.6 - page2Progress));
       }
     }
 
