@@ -410,23 +410,28 @@
       justify-content: center;
       width: 100%;
       height: 100%;
+      padding: 0;
+      box-sizing: border-box;
       overflow: visible;
       pointer-events: none;
     }
 
     .intro-modal__parchment {
+      --intro-zoom: 2.8;
       position: relative;
-      width: min(720px, 86vw);
+      width: min(98vw, calc((100dvh - 20px) * 456 / 671));
+      margin: 0 auto;
       pointer-events: auto;
       overflow: visible;
+      transform-origin: center center;
       will-change: transform, opacity;
-      transform: translateY(-120px) scale(0.96) rotate(-1.2deg);
+      transform: translateY(-120px) scale(calc(0.96 * var(--intro-zoom))) rotate(-1.2deg);
       opacity: 0;
     }
 
     @media (max-width: 768px) {
       .intro-modal__parchment {
-        width: 92vw;
+        width: 98vw;
       }
     }
 
@@ -454,19 +459,12 @@
       outline: none;
     }
 
-    /* 坐标来自 SVG viewBox 456×426：close ≈ 87% / 0%，lang ≈ 73% / 0% */
+    /* 坐标来自 SVG viewBox 456×671：close ≈ 87% / 1% */
     .intro-hit--close {
       top: 0.5%;
-      left: 83%;
+      left: 84%;
       width: 12%;
-      height: 11%;
-    }
-
-    .intro-hit--lang {
-      top: 0.5%;
-      left: 69%;
-      width: 15%;
-      height: 13%;
+      height: 6%;
     }
 
     .intro-modal.is-opening .intro-modal__parchment,
@@ -480,30 +478,30 @@
 
     @keyframes parchment-drop {
       0% {
-        transform: translateY(-120px) scale(0.96) rotate(-1.2deg);
+        transform: translateY(-120px) scale(calc(0.96 * var(--intro-zoom, 2.8))) rotate(-1.2deg);
         opacity: 0;
       }
       68% {
-        transform: translateY(10px) scale(1.012) rotate(0.6deg);
+        transform: translateY(10px) scale(calc(1.012 * var(--intro-zoom, 2.8))) rotate(0.6deg);
         opacity: 1;
       }
       86% {
-        transform: translateY(-4px) scale(0.998) rotate(-0.2deg);
+        transform: translateY(-4px) scale(calc(0.998 * var(--intro-zoom, 2.8))) rotate(-0.2deg);
         opacity: 1;
       }
       100% {
-        transform: translateY(0) scale(1) rotate(0deg);
+        transform: translateY(0) scale(var(--intro-zoom, 2.8)) rotate(0deg);
         opacity: 1;
       }
     }
 
     @keyframes parchment-rise {
       0% {
-        transform: translateY(0) scale(1) rotate(0deg);
+        transform: translateY(0) scale(var(--intro-zoom, 2.8)) rotate(0deg);
         opacity: 1;
       }
       100% {
-        transform: translateY(-96px) scale(0.97) rotate(-0.8deg);
+        transform: translateY(-96px) scale(calc(0.97 * var(--intro-zoom, 2.8))) rotate(-0.8deg);
         opacity: 0;
       }
     }
@@ -565,12 +563,6 @@
           class="intro-hit intro-hit--close"
           id="introCloseHit"
           aria-label="Close introduction"
-        ></button>
-        <button
-          type="button"
-          class="intro-hit intro-hit--lang"
-          id="introLangHit"
-          aria-label="Switch to English"
         ></button>
       </div>
     </div>
@@ -1007,29 +999,15 @@
     /* ═══════════════════════════════════════════
        Personal Introduction 羊皮纸弹窗（全局层）
        ═══════════════════════════════════════════ */
-    const INTRO_ASSETS = {
-      zh: "outputs/assets/images/whole/profile/chinese_profile.svg",
-      en: "outputs/assets/images/whole/profile/english_profile.svg",
-    };
-
+    const INTRO_PROFILE_SRC = "outputs/assets/images/whole/profile/chinese_profile.svg";
     const introModal = document.getElementById("introModal");
     const introParchmentImg = document.getElementById("introParchmentImg");
     const introOpenBtn = document.getElementById("introOpenBtn");
     const introCloseHit = document.getElementById("introCloseHit");
-    const introLangHit = document.getElementById("introLangHit");
 
-    let introLanguage = "zh";
     let introModalOpen = false;
     let savedScrollY = 0;
     const INTRO_ANIM = { open: 880, close: 460 };
-
-    function applyIntroLanguage() {
-      introParchmentImg.src = INTRO_ASSETS[introLanguage];
-      introLangHit.setAttribute(
-        "aria-label",
-        introLanguage === "zh" ? "Switch to English" : "Switch to Chinese"
-      );
-    }
 
     function lockBodyScroll() {
       savedScrollY = window.scrollY;
@@ -1051,8 +1029,7 @@
       if (introModalOpen) return;
 
       introModalOpen = true;
-      introLanguage = "zh";
-      applyIntroLanguage();
+      introParchmentImg.src = `${INTRO_PROFILE_SRC}?t=${Date.now()}`;
 
       introModal.hidden = false;
       introModal.setAttribute("aria-hidden", "false");
@@ -1080,14 +1057,8 @@
         introModal.hidden = true;
         introModal.setAttribute("aria-hidden", "true");
         introModal.classList.remove("is-closing");
-        introLanguage = "zh";
         unlockBodyScroll();
       }, INTRO_ANIM.close);
-    }
-
-    function toggleIntroLanguage() {
-      introLanguage = introLanguage === "zh" ? "en" : "zh";
-      applyIntroLanguage();
     }
 
     introOpenBtn.addEventListener("click", (event) => {
@@ -1096,7 +1067,6 @@
     });
 
     introCloseHit.addEventListener("click", closeIntroModal);
-    introLangHit.addEventListener("click", toggleIntroLanguage);
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && introModalOpen) {
