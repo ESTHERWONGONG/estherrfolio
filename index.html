@@ -71,21 +71,21 @@
     }
 
     .cursor-default {
-      width: 48px;
-      height: 48px;
-      background-image: url("outputs/assets/cursor/cursor-default.svg");
+      width: 56px;
+      height: 56px;
+      background-image: url("outputs/assets/cursor/cursor-default.svg?v=2");
     }
 
     .cursor-hover {
-      width: 56px;
-      height: 56px;
-      background-image: url("outputs/assets/cursor/cursor-hover.svg");
+      width: 60px;
+      height: 60px;
+      background-image: url("outputs/assets/cursor/cursor-hover.svg?v=2");
     }
 
     .cursor-click {
-      width: 64px;
-      height: 64px;
-      background-image: url("outputs/assets/cursor/cursor-click.svg");
+      width: 68px;
+      height: 68px;
+      background-image: url("outputs/assets/cursor/cursor-click.svg?v=2");
     }
 
     #bgCanvas {
@@ -1163,7 +1163,7 @@
           }
 
           const alpha = (i + 1) / trailPoints.length;
-          cursorCtx.fillStyle = `rgba(191, 239, 255, ${alpha * 0.55})`;
+          cursorCtx.fillStyle = `rgba(255, 232, 153, ${alpha * 0.52})`;
           cursorCtx.beginPath();
           cursorCtx.arc(p.x, p.y, CURSOR_TRAIL.maxRadius * alpha, 0, Math.PI * 2);
           cursorCtx.fill();
