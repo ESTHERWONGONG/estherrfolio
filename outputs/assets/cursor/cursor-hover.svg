@@ -1,23 +1,47 @@
-<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <filter id="glow-hover" x="0" y="0" width="56" height="56" filterUnits="userSpaceOnUse">
-      <feGaussianBlur stdDeviation="4.2" result="blur"></feGaussianBlur>
+    <radialGradient id="bg_hover" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(31 29) rotate(90) scale(26)">
+      <stop offset="0%" stop-color="#FFFBEF" stop-opacity="0.72"></stop>
+      <stop offset="45%" stop-color="#F5E4BE" stop-opacity="0.3"></stop>
+      <stop offset="100%" stop-color="#DDBA76" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <linearGradient id="ring_hover" x1="16" y1="13" x2="47" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFDF3" stop-opacity="1"></stop>
+      <stop offset="45%" stop-color="#F3DFB0" stop-opacity="0.82"></stop>
+      <stop offset="100%" stop-color="#D9B36B" stop-opacity="0.58"></stop>
+    </linearGradient>
+
+    <linearGradient id="tail_hover" x1="27" y1="32" x2="43" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFBEF" stop-opacity="0.92"></stop>
+      <stop offset="65%" stop-color="#EED7A0" stop-opacity="0.5"></stop>
+      <stop offset="100%" stop-color="#D4AD60" stop-opacity="0.12"></stop>
+    </linearGradient>
+
+    <filter id="glow_hover" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="3.2" result="blur1"></feGaussianBlur>
+      <feMerge>
+        <feMergeNode in="blur1"></feMergeNode>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+      </feMerge>
     </filter>
   </defs>
 
-  <!-- stronger outer glow -->
-  <circle cx="28" cy="28" r="16" fill="#9FE8FF" fill-opacity="0.18" filter="url(#glow-hover)"></circle>
-  <circle cx="28" cy="28" r="12.8" fill="#C9C2FF" fill-opacity="0.08" filter="url(#glow-hover)"></circle>
+  <circle cx="31" cy="29" r="25" fill="url(#bg_hover)"></circle>
 
-  <!-- outer ring -->
-  <circle cx="28" cy="28" r="13" stroke="#F0FCFF" stroke-opacity="0.82" stroke-width="1.8"></circle>
+  <circle cx="31" cy="29" r="15.8" stroke="url(#ring_hover)" stroke-width="2" stroke-linecap="round" filter="url(#glow_hover)" opacity="1"></circle>
 
-  <!-- inner ring -->
-  <circle cx="28" cy="28" r="7" stroke="#BFEFFF" stroke-opacity="0.42" stroke-width="1.2"></circle>
+  <circle cx="31" cy="29" r="11.6" stroke="#FFF9EA" stroke-opacity="0.46" stroke-width="1"></circle>
 
-  <!-- core -->
-  <circle cx="28" cy="28" r="3.2" fill="#FFFFFF"></circle>
+  <path d="M31 20.8L32.6 25L36.8 26.6L32.6 28.2L31 32.4L29.4 28.2L25.2 26.6L29.4 25L31 20.8Z" fill="#FFFDF5" fill-opacity="0.94" filter="url(#glow_hover)"></path>
 
-  <!-- 4-point sparkle -->
-  <path d="M28 10L29.2 14L33.2 15.2L29.2 16.4L28 20.4L26.8 16.4L22.8 15.2L26.8 14L28 10Z" fill="#F8FEFF"></path>
+  <circle cx="31" cy="26.6" r="2.1" fill="#FFFFFF" fill-opacity="0.65" filter="url(#glow_hover)"></circle>
+
+  <path d="M30.7 33.2C34.6 35.4 38 39.1 40.8 45.6" stroke="url(#tail_hover)" stroke-width="1.9" stroke-linecap="round" filter="url(#glow_hover)"></path>
+
+  <path d="M28.7 34.5C31.9 36.8 34.5 40.1 36.6 44.8" stroke="url(#tail_hover)" stroke-width="1.15" stroke-linecap="round" opacity="0.82"></path>
+
+  <path d="M47 16L48.1 18.7L50.8 19.8L48.1 20.9L47 23.6L45.9 20.9L43.2 19.8L45.9 18.7L47 16Z" fill="#FFFBEF" fill-opacity="0.82"></path>
+  <path d="M17 18L17.9 20.1L20 21L17.9 21.9L17 24L16.1 21.9L14 21L16.1 20.1L17 18Z" fill="#FFFBEF" fill-opacity="0.62"></path>
+  <path d="M47 34L47.8 36L49.8 36.8L47.8 37.6L47 39.6L46.2 37.6L44.2 36.8L46.2 36L47 34Z" fill="#FFFBEF" fill-opacity="0.7"></path>
 </svg>

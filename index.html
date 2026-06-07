@@ -358,6 +358,155 @@
       0%, 100% { opacity: 0.42; transform: translateX(-50%) translateY(0); }
       50% { opacity: 0.84; transform: translateX(-50%) translateY(6px); }
     }
+
+    body.modal-open {
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .intro-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    .intro-modal:not([hidden]) {
+      visibility: visible;
+    }
+
+    .intro-modal.is-active {
+      pointer-events: auto;
+    }
+
+    .intro-modal__shader {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 20%, rgba(72, 96, 128, 0.22), transparent 58%),
+        rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      transition: opacity 0.38s ease;
+    }
+
+    .intro-modal.is-active .intro-modal__shader {
+      opacity: 1;
+    }
+
+    .intro-modal.is-closing .intro-modal__shader {
+      opacity: 0;
+      transition-duration: 0.42s;
+    }
+
+    .intro-modal__stage {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .intro-modal__parchment {
+      position: relative;
+      width: min(720px, 86vw);
+      pointer-events: auto;
+      overflow: visible;
+      will-change: transform, opacity;
+      transform: translateY(-120px) scale(0.96) rotate(-1.2deg);
+      opacity: 0;
+    }
+
+    @media (max-width: 768px) {
+      .intro-modal__parchment {
+        width: 92vw;
+      }
+    }
+
+    .intro-modal__parchment img {
+      display: block;
+      width: 100%;
+      height: auto;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
+    .intro-hit {
+      position: absolute;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 0;
+      margin: 0;
+      cursor: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .intro-hit:focus-visible {
+      outline: none;
+    }
+
+    /* 坐标来自 SVG viewBox 456×426：close ≈ 87% / 0%，lang ≈ 73% / 0% */
+    .intro-hit--close {
+      top: 0.5%;
+      left: 83%;
+      width: 12%;
+      height: 11%;
+    }
+
+    .intro-hit--lang {
+      top: 0.5%;
+      left: 69%;
+      width: 15%;
+      height: 13%;
+    }
+
+    .intro-modal.is-opening .intro-modal__parchment,
+    .intro-modal.is-active:not(.is-closing) .intro-modal__parchment {
+      animation: parchment-drop 0.88s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .intro-modal.is-closing .intro-modal__parchment {
+      animation: parchment-rise 0.46s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+    }
+
+    @keyframes parchment-drop {
+      0% {
+        transform: translateY(-120px) scale(0.96) rotate(-1.2deg);
+        opacity: 0;
+      }
+      68% {
+        transform: translateY(10px) scale(1.012) rotate(0.6deg);
+        opacity: 1;
+      }
+      86% {
+        transform: translateY(-4px) scale(0.998) rotate(-0.2deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(0) scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    @keyframes parchment-rise {
+      0% {
+        transform: translateY(0) scale(1) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-96px) scale(0.97) rotate(-0.8deg);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -376,7 +525,7 @@
   <header class="nav">
     <img class="nav__logo" src="outputs/assets/images/page1/logo.png" alt="URANUSN">
     <ul class="nav__links" id="navLinks">
-      <li><a href="#" data-node="0">INTRO</a></li>
+      <li><a href="#" id="introOpenBtn">INTRO</a></li>
       <li class="nav__sep" aria-hidden="true">
         <img src="outputs/assets/images/whole/buttons/buttons_p1/dot.png" alt="">
       </li>
@@ -400,6 +549,32 @@
   </main>
 
   <p class="scroll-hint" id="scrollHint">Scroll to explore</p>
+
+  <div id="introModal" class="intro-modal" hidden aria-hidden="true">
+    <div class="intro-modal__shader" aria-hidden="true"></div>
+    <div class="intro-modal__stage">
+      <div class="intro-modal__parchment">
+        <img
+          id="introParchmentImg"
+          src="outputs/assets/images/whole/profile/chinese_profile.svg"
+          alt="Personal Introduction"
+          draggable="false"
+        >
+        <button
+          type="button"
+          class="intro-hit intro-hit--close"
+          id="introCloseHit"
+          aria-label="Close introduction"
+        ></button>
+        <button
+          type="button"
+          class="intro-hit intro-hit--lang"
+          id="introLangHit"
+          aria-label="Switch to English"
+        ></button>
+      </div>
+    </div>
+  </div>
 
   <script>
     /* ═══════════════════════════════════════════
@@ -827,6 +1002,106 @@
       soundEnabled = !soundEnabled;
       updateSoundToggleUI();
       syncAudio();
+    });
+
+    /* ═══════════════════════════════════════════
+       Personal Introduction 羊皮纸弹窗（全局层）
+       ═══════════════════════════════════════════ */
+    const INTRO_ASSETS = {
+      zh: "outputs/assets/images/whole/profile/chinese_profile.svg",
+      en: "outputs/assets/images/whole/profile/english_profile.svg",
+    };
+
+    const introModal = document.getElementById("introModal");
+    const introParchmentImg = document.getElementById("introParchmentImg");
+    const introOpenBtn = document.getElementById("introOpenBtn");
+    const introCloseHit = document.getElementById("introCloseHit");
+    const introLangHit = document.getElementById("introLangHit");
+
+    let introLanguage = "zh";
+    let introModalOpen = false;
+    let savedScrollY = 0;
+    const INTRO_ANIM = { open: 880, close: 460 };
+
+    function applyIntroLanguage() {
+      introParchmentImg.src = INTRO_ASSETS[introLanguage];
+      introLangHit.setAttribute(
+        "aria-label",
+        introLanguage === "zh" ? "Switch to English" : "Switch to Chinese"
+      );
+    }
+
+    function lockBodyScroll() {
+      savedScrollY = window.scrollY;
+      document.body.classList.add("modal-open");
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${savedScrollY}px`;
+      document.body.style.width = "100%";
+    }
+
+    function unlockBodyScroll() {
+      document.body.classList.remove("modal-open");
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, savedScrollY);
+    }
+
+    function openIntroModal() {
+      if (introModalOpen) return;
+
+      introModalOpen = true;
+      introLanguage = "zh";
+      applyIntroLanguage();
+
+      introModal.hidden = false;
+      introModal.setAttribute("aria-hidden", "false");
+      introModal.classList.remove("is-closing");
+      introModal.classList.add("is-opening");
+      lockBodyScroll();
+
+      requestAnimationFrame(() => {
+        introModal.classList.add("is-active");
+      });
+
+      window.setTimeout(() => {
+        introModal.classList.remove("is-opening");
+      }, INTRO_ANIM.open);
+    }
+
+    function closeIntroModal() {
+      if (!introModalOpen) return;
+
+      introModalOpen = false;
+      introModal.classList.add("is-closing");
+      introModal.classList.remove("is-active");
+
+      window.setTimeout(() => {
+        introModal.hidden = true;
+        introModal.setAttribute("aria-hidden", "true");
+        introModal.classList.remove("is-closing");
+        introLanguage = "zh";
+        unlockBodyScroll();
+      }, INTRO_ANIM.close);
+    }
+
+    function toggleIntroLanguage() {
+      introLanguage = introLanguage === "zh" ? "en" : "zh";
+      applyIntroLanguage();
+    }
+
+    introOpenBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      openIntroModal();
+    });
+
+    introCloseHit.addEventListener("click", closeIntroModal);
+    introLangHit.addEventListener("click", toggleIntroLanguage);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && introModalOpen) {
+        closeIntroModal();
+      }
     });
 
     /* ═══════════════════════════════════════════
