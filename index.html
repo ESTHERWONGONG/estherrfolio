@@ -131,8 +131,13 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: clamp(14px, 2vw, 22px);
+      gap: 0;
       list-style: none;
+    }
+
+    .nav__links li {
+      display: flex;
+      align-items: center;
     }
 
     .nav__links a {
@@ -156,13 +161,19 @@
     }
 
     .nav__sep {
-      width: 3.5px;
-      height: 3.5px;
-      border-radius: 50%;
-      background: #ffe899;
-      box-shadow: 0 0 2px rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
       flex-shrink: 0;
       pointer-events: none;
+      /* INTRO↔dot、dot↔MUTE 间距：原 14–22px 缩小 20% */
+      margin-inline: clamp(11px, 1.6vw, 18px);
+    }
+
+    .nav__sep img {
+      display: block;
+      width: auto;
+      height: 8px;
+      filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
     }
 
     .page__title {
@@ -290,7 +301,9 @@
     <img class="nav__logo" src="outputs/assets/images/page1/logo.png" alt="URANUSN">
     <ul class="nav__links" id="navLinks">
       <li><a href="#" data-node="0">INTRO</a></li>
-      <li class="nav__sep" aria-hidden="true"></li>
+      <li class="nav__sep" aria-hidden="true">
+        <img src="outputs/assets/images/whole/buttons/buttons_p1/dot.png" alt="">
+      </li>
       <li><a href="#" id="soundToggle">MUTE</a></li>
     </ul>
   </header>
