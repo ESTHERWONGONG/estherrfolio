@@ -103,6 +103,37 @@
       pointer-events: none;
     }
 
+    .page__content--left {
+      left: calc(clamp(24px, 4vw, 64px) - 80px);
+      top: 50%;
+      width: auto;
+      max-width: min(520px, 46vw);
+      text-align: left;
+      transform: translateY(-50%);
+    }
+
+    .page__folio-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      animation: folio-glow 2.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+    }
+
+    @keyframes folio-glow {
+      0%, 100% {
+        opacity: 0.3;
+        filter:
+          drop-shadow(0 0 3px rgba(255, 255, 255, 0.1))
+          drop-shadow(0 0 14px rgba(255, 232, 153, 0.08));
+      }
+      50% {
+        opacity: 1;
+        filter:
+          drop-shadow(0 0 8px rgba(255, 255, 255, 0.26))
+          drop-shadow(0 0 26px rgba(255, 232, 153, 0.2));
+      }
+    }
+
     .nav {
       position: fixed;
       top: 0;
@@ -310,7 +341,9 @@
 
   <main class="pages">
     <section class="page" id="page-1">
-      <div class="page__content" id="page1Content"></div>
+      <div class="page__content page__content--left" id="page1Content">
+        <img class="page__folio-img" src="outputs/assets/images/page1/folio.png" alt="portfolio">
+      </div>
     </section>
     <section class="page" id="page-2">
       <div class="page__content" id="page2Content">
@@ -580,7 +613,10 @@
       state.opacity = lerp(state.opacity, targetOpacity, CONFIG.textTransitionSmooth);
       state.translateY = lerp(state.translateY, targetY, CONFIG.textTransitionSmooth);
       el.style.opacity = state.opacity.toFixed(3);
-      el.style.transform = `translate(-50%, calc(-50% + ${state.translateY.toFixed(2)}px))`;
+      const isLeft = el.classList.contains("page__content--left");
+      el.style.transform = isLeft
+        ? `translateY(calc(-50% + ${state.translateY.toFixed(2)}px))`
+        : `translate(-50%, calc(-50% + ${state.translateY.toFixed(2)}px))`;
       el.style.pointerEvents = state.opacity > 0.4 ? "auto" : "none";
     }
 
