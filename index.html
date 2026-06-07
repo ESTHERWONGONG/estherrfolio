@@ -259,26 +259,23 @@
   <div class="loader" id="loader">
     <p class="loader__percent" id="loaderPercent">0%</p>
     <div class="loader__bar"><span id="loaderProgress"></span></div>
-    <p class="loader__text" id="loaderText">Loading frames 0 / 563</p>
+    <p class="loader__text" id="loaderText">Loading frames 0 / 271</p>
   </div>
 
   <canvas id="bgCanvas"></canvas>
+  <audio id="bgAudio" src="outputs/assets/videos/hero-video.mp4" preload="auto"></audio>
 
   <header class="nav">
     <img class="nav__logo" src="outputs/assets/images/page1/logo.png" alt="URANUSN">
     <ul class="nav__links" id="navLinks">
-      <li><a href="#" data-node="0">Introduction</a></li>
-      <li><a href="#" data-node="1">Portfolio</a></li>
+      <li><a href="#" data-node="0">INTRO</a></li>
+      <li><a href="#" id="soundToggle">MUTE</a></li>
     </ul>
   </header>
 
   <main class="pages">
     <section class="page" id="page-1">
-      <div class="page__content" id="page1Content">
-        <h1 class="page__title">Beyond the Silence</h1>
-        <p class="page__subtitle">A cinematic prelude to URANUSN</p>
-        <button class="page__btn" type="button">Begin Journey</button>
-      </div>
+      <div class="page__content" id="page1Content"></div>
     </section>
     <section class="page" id="page-2">
       <div class="page__content" id="page2Content">
@@ -297,10 +294,10 @@
        ═══════════════════════════════════════════ */
     const CONFIG = {
       fps: 30,
-      totalFrames: 563,
+      totalFrames: 271,
       page1EndFrame: 150,   // 0s → 5s
       page2StartFrame: 151, // 5s 起
-      page2EndFrame: 300,   // 5s → 10s
+      page2EndFrame: 271,   // 5s → 9s（视频结尾）
       videoFile: "hero-video.mp4",
       framePath: (i) => `frames/frame_${String(i).padStart(4, "0")}.webp`,
 
@@ -316,23 +313,23 @@
     };
 
     /* ═══════════════════════════════════════════
-       时间节点（hero-video.mp4，30fps）
+       时间节点（hero-video.mp4 ≈ 9s，30fps，共 271 帧）
        Page 1：帧 1–150（0s → 5s）自动播放
-       Page 2：帧 151–300（5s → 10s）进入后自动播放
+       Page 2：帧 151–271（5s → 9s）进入后自动播放
        ═══════════════════════════════════════════ */
     const NODES = [
       {
         startFrame: 1,
         endFrame: 150,
-        navLabel: "Introduction",
+        navLabel: "INTRO",
         title: "Beyond the Silence",
         subtitle: "A cinematic prelude to URANUSN",
         cta: "Begin Journey",
       },
       {
         startFrame: 151,
-        endFrame: 300,
-        navLabel: "Portfolio",
+        endFrame: 271,
+        navLabel: "Page 2",
         title: "Portfolio",
         subtitle: "Selected works across film, motion, and design",
         cta: "View Projects",
@@ -353,6 +350,8 @@
     const loaderText = document.getElementById("loaderText");
     const loaderPercent = document.getElementById("loaderPercent");
     const navLinks = document.getElementById("navLinks");
+    const soundToggle = document.getElementById("soundToggle");
+    const bgAudio = document.getElementById("bgAudio");
     const scrollHint = document.getElementById("scrollHint");
 
     const frames = new Array(CONFIG.totalFrames + 1);
@@ -369,6 +368,7 @@
     let displayedFrame = 1;
     let isReady = false;
     let lastActiveNode = -1;
+    let soundEnabled = true;
 
     const pageContentState = {
       page1: { opacity: 0, translateY: 0 },
@@ -558,7 +558,7 @@
 
       if (activeNode !== lastActiveNode) {
         lastActiveNode = activeNode;
-        navLinks.querySelectorAll("a").forEach((a) => {
+        navLinks.querySelectorAll("a[data-node]").forEach((a) => {
           a.classList.toggle("is-active", Number(a.dataset.node) === activeNode);
         });
       }
@@ -654,6 +654,7 @@
 
     function tick() {
       updatePlayback();
+      syncAudio();
 
       preloadAroundFrame(currentFrame);
 
@@ -666,13 +667,35 @@
     }
 
     /* ═══════════════════════════════════════════
-       导航跳转
+       导航 & 全局音乐
        ═══════════════════════════════════════════ */
     function jumpToNode(nodeIndex) {
       if (nodeIndex === 0) {
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
+      }
+    }
+
+    function updateSoundToggleUI() {
+      // 按钮显示「点击后的动作」：有声时显示 MUTE，静音时显示 SOUND
+      soundToggle.textContent = soundEnabled ? "MUTE" : "SOUND";
+      soundToggle.classList.toggle("is-active", soundEnabled);
+    }
+
+    function syncAudio() {
+      if (!soundEnabled) {
+        bgAudio.pause();
+        return;
+      }
+
+      const targetTime = (currentFrame - 1) / CONFIG.fps;
+      if (Math.abs(bgAudio.currentTime - targetTime) > 0.12) {
+        bgAudio.currentTime = targetTime;
+      }
+
+      if (bgAudio.paused) {
+        bgAudio.play().catch(() => {});
       }
     }
 
@@ -683,12 +706,21 @@
       jumpToNode(Number(link.dataset.node));
     });
 
+    soundToggle.addEventListener("click", (event) => {
+      event.preventDefault();
+      soundEnabled = !soundEnabled;
+      updateSoundToggleUI();
+      syncAudio();
+    });
+
     /* ═══════════════════════════════════════════
        初始化
        ═══════════════════════════════════════════ */
     resizeCanvas();
+    updateSoundToggleUI();
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pointerdown", () => syncAudio(), { once: true });
 
     requestAnimationFrame(tick);
 
@@ -700,6 +732,7 @@
       wasOnPage1 = true;
       currentFrame = 1;
       renderFrame(currentFrame);
+      syncAudio();
     });
 
     /*
@@ -707,6 +740,8 @@
       ffmpeg -y -i "outputs/assets/videos/hero-video.mp4" -an \
         -vf "fps=30,scale=1920:-1" -c:v libwebp -q:v 72 -compression_level 4 \
         frames/frame_%04d.webp
+
+      拆完后更新 CONFIG：totalFrames / page2EndFrame = 实际帧数
 
       本地运行：
       python3 -m http.server 8123
