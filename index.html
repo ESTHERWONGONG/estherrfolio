@@ -178,18 +178,35 @@
       opacity: 0;
       pointer-events: none;
       perspective: 900px;
+      isolation: isolate;
     }
 
     .dove-css-ring {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: min(188vw, 2100px);
+      width: min(126vw, 1360px);
       aspect-ratio: 19590 / 13834;
       opacity: 1;
       transform: translate(-50%, -50%) scale(var(--ring-scale, 1));
       transform-origin: center center;
       will-change: transform, opacity;
+      -webkit-mask-image: radial-gradient(
+        circle at 50% 50%,
+        transparent 0 var(--ring-inner, 38%),
+        #000 var(--ring-inner, 38%) var(--ring-outer, 76%),
+        transparent var(--ring-outer, 76%) 100%
+      );
+      mask-image: radial-gradient(
+        circle at 50% 50%,
+        transparent 0 var(--ring-inner, 38%),
+        #000 var(--ring-inner, 38%) var(--ring-outer, 76%),
+        transparent var(--ring-outer, 76%) 100%
+      );
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
     }
 
     .dove-css-ring img {
@@ -978,11 +995,11 @@
     const DOVE_TUNNEL = {
       imagePath: "outputs/assets/images/page5/dove_group_web.jpg",
       layers: [
-        { z: 0, scale: 1 },
-        { z: -500, scale: 0.7 },
-        { z: -1000, scale: 0.49 },
-        { z: -1500, scale: 0.34 },
-        { z: -2000, scale: 0.24 },
+        { z: 0, scale: 1, ringInner: "41%", ringOuter: "66%" },
+        { z: -500, scale: 0.7, ringInner: "31%", ringOuter: "50%" },
+        { z: -1000, scale: 0.49, ringInner: "22%", ringOuter: "36%" },
+        { z: -1500, scale: 0.34, ringInner: "15%", ringOuter: "27%" },
+        { z: -2000, scale: 0.24, ringInner: "8%", ringOuter: "19%" },
       ],
       cameraStartZ: 1050,
       cameraEndZ: -900,
@@ -990,6 +1007,7 @@
       planeHeight: 1300,
       smoothing: 0.075,
       minDistance: 70,
+      maxDepthScale: 1,
       maxTextureSize: 4096,
     };
 
@@ -1223,7 +1241,7 @@
     function createTransparentDoveSource(img) {
       const sourceWidth = img.naturalWidth || img.width;
       const sourceHeight = img.naturalHeight || img.height;
-      const maxSide = 2048;
+      const maxSide = 1400;
       const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
       const textureCanvas = document.createElement("canvas");
       textureCanvas.width = Math.max(1, Math.round(sourceWidth * scale));
@@ -1240,10 +1258,10 @@
         const min = Math.min(r, g, b);
         const max = Math.max(r, g, b);
         const spread = max - min;
-        if (min > 252 && spread < 6) {
+        if (min > 248 && spread < 7) {
           data[i + 3] = 0;
-        } else if (min > 246 && spread < 5) {
-          data[i + 3] = Math.round(((252 - min) / 6) * 255);
+        } else {
+          data[i + 3] = 255;
         }
       }
       textureCtx.putImageData(imageData, 0, 0);
@@ -1281,15 +1299,21 @@
           return;
         }
 
-        const depthScale = clamp(DOVE_TUNNEL.cameraStartZ / distance, 0.08, 1.28);
+        const depthScale = clamp(DOVE_TUNNEL.cameraStartZ / distance, 0.08, DOVE_TUNNEL.maxDepthScale);
         const scale = baseScale * layer.scale * depthScale;
+        ring.style.zIndex = String(doveCssRings.length - index);
         ring.style.opacity = "1";
+        ring.style.setProperty("--ring-inner", layer.ringInner);
+        ring.style.setProperty("--ring-outer", layer.ringOuter);
         ring.style.setProperty("--ring-scale", scale.toFixed(4));
       });
     }
 
     function updateDoveTunnel() {
-      const isPage5Active = getActivePageIndex() === 4;
+      const page5 = pageSections[4];
+      const page5Rect = page5.getBoundingClientRect();
+      const isPage5Active = page5Rect.top <= window.innerHeight * 0.5
+        && page5Rect.bottom >= window.innerHeight * 0.5;
       if (doveTunnelFallback) {
         doveTunnelFallback.style.opacity = isPage5Active ? "1" : "0";
       }
