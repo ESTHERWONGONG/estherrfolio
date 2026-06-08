@@ -118,7 +118,8 @@
     #page-2,
     #page-3,
     #page-4,
-    #page-5 {
+    #page-5,
+    #page-6 {
       width: 100vw;
       height: 100vh;
       height: 100dvh;
@@ -130,13 +131,78 @@
     #page-2,
     #page-3,
     #page-4,
-    #page-5 {
+    #page-5,
+    #page-6 {
       scroll-snap-align: start;
     }
 
-    #page-4,
-    #page-5 {
+    #page-4 {
       background: #fff url("outputs/assets/images/page4/page4_bg.png") center center / cover no-repeat;
+    }
+
+    #page-5 {
+      height: 260vh;
+      height: 260dvh;
+      overflow: hidden;
+      background: #FEFDFD;
+      scroll-snap-stop: normal;
+    }
+
+    #page-6 {
+      background: #ff0000;
+    }
+
+    .dove-tunnel {
+      position: absolute;
+      inset: 0 auto auto 0;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      background: #FEFDFD;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .dove-css-tunnel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      overflow: hidden;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      background: #FEFDFD;
+      opacity: 0;
+      pointer-events: none;
+      perspective: 900px;
+    }
+
+    .dove-css-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(188vw, 2100px);
+      aspect-ratio: 19590 / 13834;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(var(--ring-scale, 1));
+      transform-origin: center center;
+      will-change: transform, opacity;
+    }
+
+    .dove-css-ring img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    #page-5 .page__content {
+      z-index: 3;
     }
 
     /* 视频页强制停住，避免滚过导致第三段 10–15s 动画未播放 */
@@ -594,7 +660,18 @@
       <div class="page__content" id="page4Content" aria-hidden="true"></div>
     </section>
     <section class="page page--static" id="page-5">
+      <canvas class="dove-tunnel" id="doveTunnelCanvas" aria-hidden="true"></canvas>
+      <div class="dove-css-tunnel" id="doveTunnelFallback" aria-hidden="true">
+        <div class="dove-css-ring" data-dove-ring="0"><img alt="" draggable="false"></div>
+        <div class="dove-css-ring" data-dove-ring="1"><img alt="" draggable="false"></div>
+        <div class="dove-css-ring" data-dove-ring="2"><img alt="" draggable="false"></div>
+        <div class="dove-css-ring" data-dove-ring="3"><img alt="" draggable="false"></div>
+        <div class="dove-css-ring" data-dove-ring="4"><img alt="" draggable="false"></div>
+      </div>
       <div class="page__content" id="page5Content" aria-hidden="true"></div>
+    </section>
+    <section class="page page--static" id="page-6">
+      <div class="page__content" id="page6Content" aria-hidden="true"></div>
     </section>
   </main>
 
@@ -649,7 +726,7 @@
       fps: 30,
       framesPerPage: 150,   // 5s × 30fps
       videoPages: 3,
-      totalPages: 5,
+      totalPages: 6,
       totalFrames: 450,     // 15s × 30fps
       videoFile: "hero-video.mp4",
       framePath: (i) => `frames/frame_${String(i).padStart(4, "0")}.webp`,
@@ -671,7 +748,7 @@
        Page 1：帧 1–150    （0s → 5s）
        Page 2：帧 151–300  （5s → 10s）
        Page 3：帧 301–450  （10s → 15s）
-       Page 4–5：静态背景页（无视频）
+       Page 4–6：静态背景页（无视频）；Page 5 为白鸽无底洞，Page 6 为纯红测试页
        ═══════════════════════════════════════════ */
     const NODES = [
       {
@@ -711,6 +788,13 @@
       {
         video: false,
         navLabel: "Page 5",
+        title: "",
+        subtitle: "",
+        cta: "",
+      },
+      {
+        video: false,
+        navLabel: "Page 6",
         title: "",
         subtitle: "",
         cta: "",
@@ -886,6 +970,335 @@
           ensureFrame(i);
         }
       }
+    }
+
+    /* ═══════════════════════════════════════════
+       Page 5 白鸽无底洞（WebGL Perspective Tunnel）
+       ═══════════════════════════════════════════ */
+    const DOVE_TUNNEL = {
+      imagePath: "outputs/assets/images/page5/dove_group_web.jpg",
+      layers: [
+        { z: 0, scale: 1 },
+        { z: -500, scale: 0.7 },
+        { z: -1000, scale: 0.49 },
+        { z: -1500, scale: 0.34 },
+        { z: -2000, scale: 0.24 },
+      ],
+      cameraStartZ: 1050,
+      cameraEndZ: -900,
+      fov: 45,
+      planeHeight: 1300,
+      smoothing: 0.075,
+      minDistance: 70,
+      maxTextureSize: 4096,
+    };
+
+    const doveTunnelCanvas = document.getElementById("doveTunnelCanvas");
+    const doveTunnelFallback = document.getElementById("doveTunnelFallback");
+    const doveCssRings = doveTunnelFallback
+      ? Array.from(doveTunnelFallback.querySelectorAll(".dove-css-ring"))
+      : [];
+    let doveGl = null;
+    let doveProgram = null;
+    let doveVertexBuffer = null;
+    let doveTexture = null;
+    let doveTextureAspect = 19590 / 13834;
+    let doveCameraZ = DOVE_TUNNEL.cameraStartZ;
+    let doveTargetCameraZ = DOVE_TUNNEL.cameraStartZ;
+    let doveTunnelReady = false;
+    let doveCssReady = false;
+    let doveUniforms = null;
+
+    function resizeDoveTunnel() {
+      if (!doveTunnelCanvas) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const width = Math.max(1, Math.floor(doveTunnelCanvas.clientWidth * dpr));
+      const height = Math.max(1, Math.floor(doveTunnelCanvas.clientHeight * dpr));
+      if (doveTunnelCanvas.width !== width || doveTunnelCanvas.height !== height) {
+        doveTunnelCanvas.width = width;
+        doveTunnelCanvas.height = height;
+      }
+    }
+
+    function compileDoveShader(gl, type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        const message = gl.getShaderInfoLog(shader);
+        gl.deleteShader(shader);
+        throw new Error(message || "Dove tunnel shader failed");
+      }
+      return shader;
+    }
+
+    function createDoveProgram(gl) {
+      const vertexShader = compileDoveShader(gl, gl.VERTEX_SHADER, `
+        attribute vec2 aPosition;
+        attribute vec2 aUv;
+        uniform vec2 uHalfSize;
+        varying vec2 vUv;
+
+        void main() {
+          vUv = aUv;
+          gl_Position = vec4(aPosition * uHalfSize, 0.0, 1.0);
+        }
+      `);
+
+      const fragmentShader = compileDoveShader(gl, gl.FRAGMENT_SHADER, `
+        precision mediump float;
+
+        uniform sampler2D uTexture;
+        uniform float uOpacity;
+        varying vec2 vUv;
+
+        void main() {
+          vec4 color = texture2D(uTexture, vUv);
+          float distanceFromWhite = length(vec3(1.0) - color.rgb);
+          float alpha = smoothstep(0.035, 0.18, distanceFromWhite) * uOpacity;
+          if (alpha < 0.01) discard;
+          gl_FragColor = vec4(color.rgb, alpha);
+        }
+      `);
+
+      const program = gl.createProgram();
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+      gl.deleteShader(vertexShader);
+      gl.deleteShader(fragmentShader);
+
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        const message = gl.getProgramInfoLog(program);
+        gl.deleteProgram(program);
+        throw new Error(message || "Dove tunnel program failed");
+      }
+
+      return program;
+    }
+
+    function prepareDoveTextureSource(gl, img) {
+      const sourceWidth = img.naturalWidth || img.width;
+      const sourceHeight = img.naturalHeight || img.height;
+      const maxTextureSize = Math.min(
+        gl.getParameter(gl.MAX_TEXTURE_SIZE),
+        DOVE_TUNNEL.maxTextureSize
+      );
+      const scale = Math.min(1, maxTextureSize / Math.max(sourceWidth, sourceHeight));
+
+      doveTextureAspect = sourceWidth / sourceHeight;
+
+      if (scale >= 1) return img;
+
+      const textureCanvas = document.createElement("canvas");
+      textureCanvas.width = Math.max(1, Math.round(sourceWidth * scale));
+      textureCanvas.height = Math.max(1, Math.round(sourceHeight * scale));
+      const textureCtx = textureCanvas.getContext("2d", { alpha: false });
+      textureCtx.drawImage(img, 0, 0, textureCanvas.width, textureCanvas.height);
+      return textureCanvas;
+    }
+
+    function initDoveTunnel() {
+      if (!doveTunnelCanvas) return;
+
+      resizeDoveTunnel();
+      doveGl = doveTunnelCanvas.getContext("webgl", {
+        alpha: true,
+        antialias: true,
+        premultipliedAlpha: false,
+      });
+
+      if (!doveGl) {
+        console.warn("WebGL is unavailable for the dove tunnel.");
+        return;
+      }
+
+      try {
+        doveProgram = createDoveProgram(doveGl);
+      } catch (error) {
+        console.warn(error.message);
+        return;
+      }
+
+      doveVertexBuffer = doveGl.createBuffer();
+      doveGl.bindBuffer(doveGl.ARRAY_BUFFER, doveVertexBuffer);
+      doveGl.bufferData(doveGl.ARRAY_BUFFER, new Float32Array([
+        -1, -1, 0, 1,
+         1, -1, 1, 1,
+        -1,  1, 0, 0,
+        -1,  1, 0, 0,
+         1, -1, 1, 1,
+         1,  1, 1, 0,
+      ]), doveGl.STATIC_DRAW);
+
+      doveUniforms = {
+        halfSize: doveGl.getUniformLocation(doveProgram, "uHalfSize"),
+        opacity: doveGl.getUniformLocation(doveProgram, "uOpacity"),
+        texture: doveGl.getUniformLocation(doveProgram, "uTexture"),
+      };
+
+      doveTexture = doveGl.createTexture();
+      doveGl.bindTexture(doveGl.TEXTURE_2D, doveTexture);
+      doveGl.texParameteri(doveGl.TEXTURE_2D, doveGl.TEXTURE_WRAP_S, doveGl.CLAMP_TO_EDGE);
+      doveGl.texParameteri(doveGl.TEXTURE_2D, doveGl.TEXTURE_WRAP_T, doveGl.CLAMP_TO_EDGE);
+      doveGl.texParameteri(doveGl.TEXTURE_2D, doveGl.TEXTURE_MIN_FILTER, doveGl.LINEAR);
+      doveGl.texParameteri(doveGl.TEXTURE_2D, doveGl.TEXTURE_MAG_FILTER, doveGl.LINEAR);
+
+      loadImage(DOVE_TUNNEL.imagePath)
+        .then((img) => {
+          const textureSource = prepareDoveTextureSource(doveGl, img);
+          doveGl.bindTexture(doveGl.TEXTURE_2D, doveTexture);
+          doveGl.texImage2D(doveGl.TEXTURE_2D, 0, doveGl.RGBA, doveGl.RGBA, doveGl.UNSIGNED_BYTE, textureSource);
+          doveTunnelReady = true;
+          renderDoveTunnel();
+        })
+        .catch((error) => {
+          console.warn(error.message);
+        });
+    }
+
+    function getDoveTunnelProgress() {
+      const page = pageSections[4];
+      if (!page) return 0;
+      const distance = Math.max(1, page.offsetHeight - window.innerHeight);
+      return clamp((window.scrollY - page.offsetTop) / distance, 0, 1);
+    }
+
+    function isDoveTunnelNearViewport() {
+      const page = pageSections[4];
+      if (!page) return false;
+      const rect = page.getBoundingClientRect();
+      return rect.top < window.innerHeight * 1.15 && rect.bottom > -window.innerHeight * 0.15;
+    }
+
+    function renderDoveTunnel() {
+      if (!doveGl || !doveProgram || !doveTunnelReady) return;
+
+      const width = doveTunnelCanvas.width;
+      const height = doveTunnelCanvas.height;
+      if (!width || !height) return;
+
+      doveGl.viewport(0, 0, width, height);
+      doveGl.clearColor(0, 0, 0, 0);
+      doveGl.clear(doveGl.COLOR_BUFFER_BIT);
+      doveGl.enable(doveGl.BLEND);
+      doveGl.blendFunc(doveGl.SRC_ALPHA, doveGl.ONE_MINUS_SRC_ALPHA);
+      doveGl.useProgram(doveProgram);
+
+      const stride = 4 * Float32Array.BYTES_PER_ELEMENT;
+      const positionLocation = doveGl.getAttribLocation(doveProgram, "aPosition");
+      const uvLocation = doveGl.getAttribLocation(doveProgram, "aUv");
+      doveGl.bindBuffer(doveGl.ARRAY_BUFFER, doveVertexBuffer);
+      doveGl.enableVertexAttribArray(positionLocation);
+      doveGl.vertexAttribPointer(positionLocation, 2, doveGl.FLOAT, false, stride, 0);
+      doveGl.enableVertexAttribArray(uvLocation);
+      doveGl.vertexAttribPointer(uvLocation, 2, doveGl.FLOAT, false, stride, 2 * Float32Array.BYTES_PER_ELEMENT);
+
+      doveGl.activeTexture(doveGl.TEXTURE0);
+      doveGl.bindTexture(doveGl.TEXTURE_2D, doveTexture);
+      doveGl.uniform1i(doveUniforms.texture, 0);
+      doveGl.uniform1f(doveUniforms.opacity, 1);
+
+      const viewportAspect = width / height;
+      const fovRadians = DOVE_TUNNEL.fov * Math.PI / 180;
+      const perspective = 1 / Math.tan(fovRadians * 0.5);
+
+      DOVE_TUNNEL.layers
+        .map((layer) => ({
+          layer,
+          distance: doveCameraZ - layer.z,
+        }))
+        .filter(({ distance }) => distance > DOVE_TUNNEL.minDistance)
+        .sort((a, b) => b.distance - a.distance)
+        .forEach(({ layer, distance }) => {
+          const worldHeight = DOVE_TUNNEL.planeHeight * layer.scale;
+          const worldWidth = worldHeight * doveTextureAspect;
+          const halfHeight = (worldHeight * 0.5 * perspective) / distance;
+          const halfWidth = (worldWidth * 0.5 * perspective / viewportAspect) / distance;
+          doveGl.uniform2f(doveUniforms.halfSize, halfWidth, halfHeight);
+          doveGl.drawArrays(doveGl.TRIANGLES, 0, 6);
+        });
+    }
+
+    function createTransparentDoveSource(img) {
+      const sourceWidth = img.naturalWidth || img.width;
+      const sourceHeight = img.naturalHeight || img.height;
+      const maxSide = 2048;
+      const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
+      const textureCanvas = document.createElement("canvas");
+      textureCanvas.width = Math.max(1, Math.round(sourceWidth * scale));
+      textureCanvas.height = Math.max(1, Math.round(sourceHeight * scale));
+      const textureCtx = textureCanvas.getContext("2d", { willReadFrequently: true });
+      textureCtx.drawImage(img, 0, 0, textureCanvas.width, textureCanvas.height);
+
+      const imageData = textureCtx.getImageData(0, 0, textureCanvas.width, textureCanvas.height);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const min = Math.min(r, g, b);
+        const max = Math.max(r, g, b);
+        const spread = max - min;
+        if (min > 252 && spread < 6) {
+          data[i + 3] = 0;
+        } else if (min > 246 && spread < 5) {
+          data[i + 3] = Math.round(((252 - min) / 6) * 255);
+        }
+      }
+      textureCtx.putImageData(imageData, 0, 0);
+      return textureCanvas.toDataURL("image/png");
+    }
+
+    function initDoveCssTunnel() {
+      if (!doveCssRings.length) return;
+      loadImage(DOVE_TUNNEL.imagePath)
+        .then((img) => {
+          const transparentSource = createTransparentDoveSource(img);
+          doveCssRings.forEach((ring) => {
+            const image = ring.querySelector("img");
+            if (image) image.src = transparentSource;
+          });
+          doveCssReady = true;
+          updateDoveCssTunnel();
+        })
+        .catch((error) => {
+          console.warn(error.message);
+        });
+    }
+
+    function updateDoveCssTunnel() {
+      if (!doveCssReady || !doveCssRings.length) return;
+
+      const viewportAspect = window.innerWidth / Math.max(1, window.innerHeight);
+      const baseScale = viewportAspect < 0.7 ? 1.45 : 1;
+
+      doveCssRings.forEach((ring, index) => {
+        const layer = DOVE_TUNNEL.layers[index];
+        const distance = doveCameraZ - layer.z;
+        if (!layer || distance <= DOVE_TUNNEL.minDistance) {
+          ring.style.opacity = "0";
+          return;
+        }
+
+        const depthScale = clamp(DOVE_TUNNEL.cameraStartZ / distance, 0.08, 1.28);
+        const scale = baseScale * layer.scale * depthScale;
+        ring.style.opacity = "1";
+        ring.style.setProperty("--ring-scale", scale.toFixed(4));
+      });
+    }
+
+    function updateDoveTunnel() {
+      const isPage5Active = getActivePageIndex() === 4;
+      if (doveTunnelFallback) {
+        doveTunnelFallback.style.opacity = isPage5Active ? "1" : "0";
+      }
+      if (!doveTunnelCanvas || !isPage5Active) return;
+      const progress = smoothstep(0, 1, getDoveTunnelProgress());
+      doveTargetCameraZ = lerp(DOVE_TUNNEL.cameraStartZ, DOVE_TUNNEL.cameraEndZ, progress);
+      doveCameraZ = lerp(doveCameraZ, doveTargetCameraZ, DOVE_TUNNEL.smoothing);
+      renderDoveTunnel();
+      updateDoveCssTunnel();
     }
 
     /* ═══════════════════════════════════════════
@@ -1068,6 +1481,7 @@
       updatePlayback();
       syncAudio();
       updateCanvasVisibility();
+      updateDoveTunnel();
 
       if (isVideoPage(getActivePageIndex())) {
         preloadAroundFrame(currentFrame);
@@ -1341,10 +1755,14 @@
        初始化
        ═══════════════════════════════════════════ */
     resizeCanvas();
+    resizeDoveTunnel();
+    initDoveTunnel();
+    initDoveCssTunnel();
     updateSoundToggleUI();
     window.addEventListener("resize", () => {
       resizeCanvas();
       resizeCursorCanvas();
+      resizeDoveTunnel();
     });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("pointerdown", () => syncAudio(), { once: true });
