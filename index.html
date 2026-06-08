@@ -132,8 +132,14 @@
       scroll-snap-align: start;
     }
 
-    /* 进入 Page 1 时强制停住；其余页不设 stop，便于继续滚动 */
-    #page-1 {
+    #page-4 {
+      background: #fff url("outputs/assets/images/page4/page4_bg.png") center center / cover no-repeat;
+    }
+
+    /* 视频页强制停住，避免滚过导致第三段 10–15s 动画未播放 */
+    #page-1,
+    #page-2,
+    #page-3 {
       scroll-snap-stop: always;
     }
 
@@ -543,7 +549,7 @@
   <div class="loader" id="loader">
     <p class="loader__percent" id="loaderPercent">0%</p>
     <div class="loader__bar"><span id="loaderProgress"></span></div>
-    <p class="loader__text" id="loaderText">Loading frames 0 / 271</p>
+    <p class="loader__text" id="loaderText">Loading frames 0 / 450</p>
   </div>
 
   <canvas id="bgCanvas"></canvas>
@@ -581,12 +587,8 @@
         <button class="page__btn" type="button">Explore</button>
       </div>
     </section>
-    <section class="page" id="page-4">
-      <div class="page__content" id="page4Content">
-        <h1 class="page__title">Connect</h1>
-        <p class="page__subtitle">Collaborations, commissions, and new projects</p>
-        <button class="page__btn" type="button">Get in Touch</button>
-      </div>
+    <section class="page page--static" id="page-4">
+      <div class="page__content" id="page4Content" aria-hidden="true"></div>
     </section>
   </main>
 
@@ -640,8 +642,9 @@
     const CONFIG = {
       fps: 30,
       framesPerPage: 150,   // 5s × 30fps
+      videoPages: 3,
       totalPages: 4,
-      totalFrames: 600,     // 20s × 30fps
+      totalFrames: 450,     // 15s × 30fps
       videoFile: "hero-video.mp4",
       framePath: (i) => `frames/frame_${String(i).padStart(4, "0")}.webp`,
 
@@ -657,15 +660,16 @@
     };
 
     /* ═══════════════════════════════════════════
-       时间节点（hero-video.mp4 ≈ 20s，30fps，共 600 帧）
-       每页 5s / 150 帧，进入该页后自动播放
+       时间节点（hero-video.mp4 ≈ 15s，30fps，共 450 帧）
+       前三页各 5s / 150 帧；Page 4 为静态页
        Page 1：帧 1–150    （0s → 5s）
        Page 2：帧 151–300  （5s → 10s）
        Page 3：帧 301–450  （10s → 15s）
-       Page 4：帧 451–600  （15s → 20s）
+       Page 4：静态背景页（无视频）
        ═══════════════════════════════════════════ */
     const NODES = [
       {
+        video: true,
         startFrame: 1,
         endFrame: 150,
         navLabel: "INTRO",
@@ -674,6 +678,7 @@
         cta: "Begin Journey",
       },
       {
+        video: true,
         startFrame: 151,
         endFrame: 300,
         navLabel: "Page 2",
@@ -682,6 +687,7 @@
         cta: "View Projects",
       },
       {
+        video: true,
         startFrame: 301,
         endFrame: 450,
         navLabel: "Page 3",
@@ -690,12 +696,11 @@
         cta: "Explore",
       },
       {
-        startFrame: 451,
-        endFrame: 600,
+        video: false,
         navLabel: "Page 4",
-        title: "Connect",
-        subtitle: "Collaborations, commissions, and new projects",
-        cta: "Get in Touch",
+        title: "",
+        subtitle: "",
+        cta: "",
       },
     ];
 
@@ -720,8 +725,8 @@
     let loadedFrameCount = 0;
 
     const pagePlayback = NODES.map((node) => ({
-      frame: node.startFrame,
-      done: false,
+      frame: node.video !== false ? node.startFrame : CONFIG.totalFrames,
+      done: node.video === false,
     }));
 
     let lastPageIndex = 0;
@@ -739,19 +744,28 @@
     }
 
     function getActivePageIndex() {
-      const scrollY = window.scrollY;
-      for (let i = pageSections.length - 1; i >= 0; i--) {
-        if (scrollY >= pageSections[i].offsetTop - 2) return i;
+      const viewportMid = window.scrollY + window.innerHeight * 0.5;
+      for (let i = 0; i < pageSections.length; i++) {
+        const section = pageSections[i];
+        const top = section.offsetTop;
+        const bottom = top + section.offsetHeight;
+        if (viewportMid >= top && viewportMid < bottom) return i;
       }
-      return 0;
+      return pageSections.length - 1;
+    }
+
+    function isVideoPage(pageIndex) {
+      return NODES[pageIndex].video !== false;
     }
 
     function getPageFrameSpan(pageIndex) {
       const node = NODES[pageIndex];
+      if (!isVideoPage(pageIndex)) return 1;
       return node.endFrame - node.startFrame;
     }
 
     function getPagePlaybackProgress(pageIndex) {
+      if (!isVideoPage(pageIndex)) return 1;
       const pb = pagePlayback[pageIndex];
       if (pb.done) return 1;
       return clamp((pb.frame - NODES[pageIndex].startFrame) / getPageFrameSpan(pageIndex), 0, 1);
@@ -762,8 +776,19 @@
     }
 
     function resetPagePlayback(pageIndex) {
-      pagePlayback[pageIndex].frame = NODES[pageIndex].startFrame;
+      const node = NODES[pageIndex];
+      if (!isVideoPage(pageIndex)) {
+        pagePlayback[pageIndex].frame = CONFIG.totalFrames;
+        pagePlayback[pageIndex].done = true;
+        return;
+      }
+      pagePlayback[pageIndex].frame = node.startFrame;
       pagePlayback[pageIndex].done = false;
+    }
+
+    function updateCanvasVisibility() {
+      const onStaticPage = !isVideoPage(getActivePageIndex());
+      canvas.style.opacity = onStaticPage ? "0" : "1";
     }
 
     /* ═══════════════════════════════════════════
@@ -972,12 +997,23 @@
        ═══════════════════════════════════════════ */
     let lastScrollY = window.scrollY;
 
+    function enterVideoPage(pageIndex) {
+      const node = NODES[pageIndex];
+      resetPagePlayback(pageIndex);
+      currentFrame = node.startFrame;
+      pagePlayback[pageIndex].frame = node.startFrame;
+      displayedFrame = -1;
+      renderFrame(node.startFrame);
+    }
+
     function updatePlayback() {
       const pageIndex = getActivePageIndex();
 
       if (pageIndex !== lastPageIndex) {
         if (pageIndex === 0 && pagePlayback[0].done) {
           // Page 1 已播完：回到首页时保持最后一帧
+        } else if (isVideoPage(pageIndex)) {
+          enterVideoPage(pageIndex);
         } else {
           resetPagePlayback(pageIndex);
         }
@@ -986,6 +1022,12 @@
 
       const pb = pagePlayback[pageIndex];
       const node = NODES[pageIndex];
+
+      if (!isVideoPage(pageIndex)) {
+        currentFrame = CONFIG.totalFrames;
+        pb.done = true;
+        return;
+      }
 
       if (pageIndex === 0 && pb.done) {
         currentFrame = node.endFrame;
@@ -1012,11 +1054,13 @@
     function tick() {
       updatePlayback();
       syncAudio();
+      updateCanvasVisibility();
 
-      preloadAroundFrame(currentFrame);
-
-      if (Math.round(displayedFrame) !== Math.round(currentFrame)) {
-        renderFrame(currentFrame);
+      if (isVideoPage(getActivePageIndex())) {
+        preloadAroundFrame(currentFrame);
+        if (Math.round(displayedFrame) !== Math.round(currentFrame)) {
+          renderFrame(currentFrame);
+        }
       }
 
       updateContentUI();
@@ -1038,7 +1082,7 @@
     }
 
     function syncAudio() {
-      if (!soundEnabled) {
+      if (!soundEnabled || !isVideoPage(getActivePageIndex())) {
         bgAudio.pause();
         return;
       }
@@ -1296,8 +1340,13 @@
 
     preloadFrames().then(() => {
       pagePlayback.forEach((pb, i) => {
-        pb.frame = NODES[i].startFrame;
-        pb.done = false;
+        if (isVideoPage(i)) {
+          pb.frame = NODES[i].startFrame;
+          pb.done = false;
+        } else {
+          pb.frame = CONFIG.totalFrames;
+          pb.done = true;
+        }
       });
       lastPageIndex = 0;
       currentFrame = 1;
@@ -1306,14 +1355,14 @@
     });
 
     /*
-      拆帧命令（在项目根目录执行，20s 视频 → 600 帧 @ 30fps）：
+      拆帧命令（在项目根目录执行，15s 视频 → 450 帧 @ 30fps）：
       mkdir -p frames
       ffmpeg -y -i "outputs/assets/videos/hero-video.mp4" -an \
-        -vf "fps=30,scale=1920:-1" -frames:v 600 \
+        -vf "fps=30,scale=1920:-1" -frames:v 450 \
         -c:v libwebp -q:v 72 -compression_level 4 \
         frames/frame_%04d.webp
 
-      拆完后确认 CONFIG.totalFrames = 600，每页 150 帧（5s）
+      拆完后确认 CONFIG.totalFrames = 450，前三页各 150 帧（5s）
 
       本地运行：
       python3 -m http.server 8123
