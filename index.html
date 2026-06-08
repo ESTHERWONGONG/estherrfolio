@@ -421,9 +421,10 @@
     }
 
     .intro-modal__parchment {
-      --intro-zoom: 2.8;
+      --intro-zoom: 1;
+      --intro-panel-aspect: 4608 / 3858;
       position: relative;
-      width: min(98vw, calc((100dvh - 20px) * 456 / 671));
+      width: min(98vw, calc((100dvh - 20px) * var(--intro-panel-aspect)));
       margin: 0 auto;
       pointer-events: auto;
       overflow: visible;
@@ -448,27 +449,57 @@
       pointer-events: none;
     }
 
-    .intro-hit {
+    .intro-modal__toolbar {
       position: absolute;
-      background: transparent;
-      border: none;
-      outline: none;
+      top: 0;
+      right: 0;
+      left: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+      align-items: flex-start;
+      gap: 1px;
+      pointer-events: none;
+    }
+
+    .intro-modal__toolbar-btn {
+      display: block;
+      flex: 0 0 auto;
       padding: 0;
       margin: 0;
+      border: none;
+      background: transparent;
+      outline: none;
       cursor: none;
+      line-height: 0;
       -webkit-tap-highlight-color: transparent;
+      pointer-events: auto;
     }
 
-    .intro-hit:focus-visible {
+    .intro-modal__toolbar-btn:focus-visible {
       outline: none;
     }
 
-    /* 坐标来自 SVG viewBox 456×671：close ≈ 87% / 1% */
-    .intro-hit--close {
-      top: 0.5%;
-      left: 84%;
-      width: 12%;
-      height: 6%;
+    .intro-modal__toolbar-btn img {
+      display: block;
+      width: 100%;
+      height: auto;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .intro-modal__toolbar-btn--close {
+      width: 10.677%;
+    }
+
+    .intro-modal__toolbar-btn--lang {
+      width: 14.407%;
+    }
+
+    .intro-modal__parchment.is-english .intro-modal__toolbar-btn--lang {
+      width: 28.819%;
     }
 
     .intro-modal.is-opening .intro-modal__parchment,
@@ -569,19 +600,40 @@
   <div id="introModal" class="intro-modal" hidden aria-hidden="true">
     <div class="intro-modal__shader" aria-hidden="true"></div>
     <div class="intro-modal__stage">
-      <div class="intro-modal__parchment">
+      <div class="intro-modal__parchment" id="introParchment">
+        <div class="intro-modal__toolbar">
+          <button
+            type="button"
+            class="intro-modal__toolbar-btn intro-modal__toolbar-btn--close"
+            id="introCloseBtn"
+            aria-label="Close introduction"
+          >
+            <img
+              src="outputs/assets/images/whole/buttons/buttons_whole/close_button.png"
+              alt=""
+              draggable="false"
+            >
+          </button>
+          <button
+            type="button"
+            class="intro-modal__toolbar-btn intro-modal__toolbar-btn--lang"
+            id="introLangBtn"
+            aria-label="Switch to English version"
+          >
+            <img
+              id="introLangBtnImg"
+              src="outputs/assets/images/whole/buttons/buttons_whole/english version_button.png"
+              alt="English Version"
+              draggable="false"
+            >
+          </button>
+        </div>
         <img
           id="introParchmentImg"
-          src="outputs/assets/images/whole/profile/chinese_profile.svg"
+          src="outputs/assets/images/whole/profile/chinese_panel.png"
           alt="Personal Introduction"
           draggable="false"
         >
-        <button
-          type="button"
-          class="intro-hit intro-hit--close"
-          id="introCloseHit"
-          aria-label="Close introduction"
-        ></button>
       </div>
     </div>
   </div>
@@ -1023,13 +1075,29 @@
     /* ═══════════════════════════════════════════
        Personal Introduction 羊皮纸弹窗（全局层）
        ═══════════════════════════════════════════ */
-    const INTRO_PROFILE_SRC = "outputs/assets/images/whole/profile/chinese_profile.svg";
+    const INTRO_PANEL = {
+      zh: "outputs/assets/images/whole/profile/chinese_panel.png",
+      en: "outputs/assets/images/whole/profile/english_panel.png",
+    };
+    const INTRO_LANG_BTN = {
+      zh: "outputs/assets/images/whole/buttons/buttons_whole/english version_button.png",
+      en: "outputs/assets/images/whole/buttons/buttons_whole/chinese_button.png",
+    };
+    const INTRO_LANG_LABEL = {
+      zh: "Switch to English version",
+      en: "Switch to Chinese version",
+    };
+
     const introModal = document.getElementById("introModal");
+    const introParchment = document.getElementById("introParchment");
     const introParchmentImg = document.getElementById("introParchmentImg");
     const introOpenBtn = document.getElementById("introOpenBtn");
-    const introCloseHit = document.getElementById("introCloseHit");
+    const introCloseBtn = document.getElementById("introCloseBtn");
+    const introLangBtn = document.getElementById("introLangBtn");
+    const introLangBtnImg = document.getElementById("introLangBtnImg");
 
     let introModalOpen = false;
+    let introLanguage = "zh";
     let savedScrollY = 0;
     const INTRO_ANIM = { open: 880, close: 460 };
 
@@ -1049,11 +1117,21 @@
       window.scrollTo(0, savedScrollY);
     }
 
+    function setIntroLanguage(language) {
+      introLanguage = language;
+      introParchment.classList.toggle("is-english", language === "en");
+      introParchmentImg.src = INTRO_PANEL[language];
+      introLangBtnImg.src = INTRO_LANG_BTN[language];
+      introLangBtnImg.alt = language === "zh" ? "English Version" : "Chinese Version";
+      introLangBtn.setAttribute("aria-label", INTRO_LANG_LABEL[language]);
+    }
+
     function openIntroModal() {
       if (introModalOpen) return;
 
       introModalOpen = true;
-      introParchmentImg.src = `${INTRO_PROFILE_SRC}?t=${Date.now()}`;
+      setIntroLanguage("zh");
+      introParchmentImg.src = `${INTRO_PANEL.zh}?t=${Date.now()}`;
 
       introModal.hidden = false;
       introModal.setAttribute("aria-hidden", "false");
@@ -1090,7 +1168,11 @@
       openIntroModal();
     });
 
-    introCloseHit.addEventListener("click", closeIntroModal);
+    introCloseBtn.addEventListener("click", closeIntroModal);
+
+    introLangBtn.addEventListener("click", () => {
+      setIntroLanguage(introLanguage === "zh" ? "en" : "zh");
+    });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && introModalOpen) {
