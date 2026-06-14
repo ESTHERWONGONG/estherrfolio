@@ -2179,7 +2179,10 @@
     }
 
     function isPagePlaybackSuspended() {
-      return isPortfolioModalOpen || document.body.classList.contains("pt-modal-lock");
+      return isPortfolioModalOpen
+        || introModalOpen
+        || document.body.classList.contains("pt-modal-lock")
+        || document.body.classList.contains("modal-open");
     }
 
     function getActivePageIndex() {
@@ -3138,6 +3141,7 @@
     function openIntroModal() {
       if (introModalOpen) return;
 
+      preservePage2PlaybackState(window.scrollY);
       introModalOpen = true;
       setIntroLanguage(introLanguage);
       introModal.hidden = false;
@@ -3167,6 +3171,7 @@
         introModal.setAttribute("aria-hidden", "true");
         introModal.classList.remove("is-closing");
         unlockBodyScroll();
+        restorePage2PlaybackState(savedScrollY);
       }, INTRO_ANIM.close);
     }
 
