@@ -36,9 +36,9 @@
     }
 
     html {
-      scroll-behavior: smooth;
-      /* proximity：Page 1/2 边界可吸附，Page 2 内部可自由 scrub */
-      scroll-snap-type: y proximity;
+      scroll-behavior: auto;
+      /* 由自定义 section 动画接管切页，避免浏览器 snap 叠加 */
+      scroll-snap-type: none;
     }
 
     html,
@@ -1836,6 +1836,152 @@
        播放 & 主循环
        ═══════════════════════════════════════════ */
     let lastScrollY = window.scrollY;
+    const SECTION_SCROLL_DURATION = 620;
+    const WHEEL_DELTA_THRESHOLD = 24;
+    const WHEEL_GESTURE_LOCK_MS = 720;
+    let isScrollLocked = false;
+    let wheelGestureLocked = false;
+    let wheelUnlockTimer = 0;
+    let scrollTweenFrame = null;
+
+    function easeInOutCubic(t) {
+      return t < 0.5
+        ? 4 * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function clearWheelGestureLock() {
+      if (wheelUnlockTimer) {
+        window.clearTimeout(wheelUnlockTimer);
+        wheelUnlockTimer = 0;
+      }
+      wheelGestureLocked = false;
+    }
+
+    function scheduleWheelGestureUnlock() {
+      clearWheelGestureLock();
+      wheelGestureLocked = true;
+      wheelUnlockTimer = window.setTimeout(() => {
+        wheelGestureLocked = false;
+        wheelUnlockTimer = 0;
+      }, WHEEL_GESTURE_LOCK_MS);
+    }
+
+    function canScrollWithin(element, deltaY) {
+      if (!element) return false;
+      const overflowY = window.getComputedStyle(element).overflowY;
+      const isScrollable = /(auto|scroll|overlay)/.test(overflowY);
+      if (!isScrollable || element.scrollHeight <= element.clientHeight + 1) {
+        return false;
+      }
+
+      if (deltaY < 0) {
+        return element.scrollTop > 0;
+      }
+
+      if (deltaY > 0) {
+        return element.scrollTop + element.clientHeight < element.scrollHeight - 1;
+      }
+
+      return false;
+    }
+
+    function findScrollableAncestor(target, deltaY) {
+      if (!(target instanceof Element)) return null;
+
+      let current = target;
+      while (current && current !== document.body) {
+        if (canScrollWithin(current, deltaY)) {
+          return current;
+        }
+        current = current.parentElement;
+      }
+
+      return null;
+    }
+
+    function shouldBypassControlledScroll(event) {
+      if (introModalOpen || document.body.classList.contains("pt-modal-lock")) {
+        return true;
+      }
+
+      if (event.target instanceof Element && event.target.closest("#introModal, [data-pt-modal]")) {
+        return true;
+      }
+
+      return Boolean(findScrollableAncestor(event.target, event.deltaY));
+    }
+
+    function startSectionScroll(targetIndex) {
+      const index = clamp(targetIndex, 0, NODES.length - 1);
+      const startY = window.scrollY;
+      const targetY = Math.round(index * window.innerHeight);
+
+      if (isScrollLocked) {
+        return false;
+      }
+
+      if (Math.abs(targetY - startY) < 2) {
+        window.scrollTo(0, targetY);
+        return false;
+      }
+
+      if (scrollTweenFrame !== null) {
+        window.cancelAnimationFrame(scrollTweenFrame);
+        scrollTweenFrame = null;
+      }
+
+      isScrollLocked = true;
+      const startedAt = performance.now();
+
+      const step = (now) => {
+        const progress = clamp((now - startedAt) / SECTION_SCROLL_DURATION, 0, 1);
+        const eased = easeInOutCubic(progress);
+        const nextY = lerp(startY, targetY, eased);
+
+        window.scrollTo(0, nextY);
+
+        if (progress < 1) {
+          scrollTweenFrame = window.requestAnimationFrame(step);
+          return;
+        }
+
+        window.scrollTo(0, targetY);
+        scrollTweenFrame = null;
+        isScrollLocked = false;
+      };
+
+      scrollTweenFrame = window.requestAnimationFrame(step);
+      return true;
+    }
+
+    function handleWheel(event) {
+      if (event.ctrlKey || event.metaKey) return;
+      if (shouldBypassControlledScroll(event)) return;
+
+      const { deltaX, deltaY } = event;
+      if (Math.abs(deltaY) <= Math.abs(deltaX) || Math.abs(deltaY) < WHEEL_DELTA_THRESHOLD) {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (isScrollLocked || wheelGestureLocked) {
+        return;
+      }
+
+      const currentIndex = getActivePageIndex();
+      const direction = deltaY > 0 ? 1 : -1;
+      const targetIndex = clamp(currentIndex + direction, 0, NODES.length - 1);
+
+      scheduleWheelGestureUnlock();
+
+      if (targetIndex === currentIndex) {
+        return;
+      }
+
+      startSectionScroll(targetIndex);
+    }
 
     function enterVideoPage(pageIndex) {
       const node = NODES[pageIndex];
@@ -1912,7 +2058,7 @@
        ═══════════════════════════════════════════ */
     function jumpToNode(nodeIndex) {
       const index = clamp(nodeIndex, 0, NODES.length - 1);
-      window.scrollTo({ top: index * window.innerHeight, behavior: "smooth" });
+      startSectionScroll(index);
     }
 
     function updateSoundToggleUI() {
@@ -2173,6 +2319,7 @@
       resizeCursorCanvas();
     });
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("pointerdown", () => syncAudio(), { once: true });
 
     requestAnimationFrame(tick);
