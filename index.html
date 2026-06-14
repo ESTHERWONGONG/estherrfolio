@@ -177,12 +177,12 @@
       --water-center-y: 90%;
       --water-radius-x: 35.1%;
       --water-radius-y: 10.8%;
-      --orb-x: 63%;
-      --orb-y: 61%;
+      --orb-center-x: 63%;
+      --orb-center-y: 61%;
       --orb-size: 13%;
-      --orb-ripple-offset-x: 0px;
-      --orb-line-height: 50%;
-      --orb-line-width: 0.85%;
+      --orb-core-rgb: 255 246 238;
+      --page4-fade-duration: 1640ms;
+      --page4-fade-ease: cubic-bezier(0.32, 0, 0.12, 1);
       position: absolute;
       inset: 0;
       width: 100vw;
@@ -191,7 +191,7 @@
       overflow: hidden;
       isolation: isolate;
       z-index: 1;
-      pointer-events: none;
+      pointer-events: auto;
     }
 
     .page4-layer {
@@ -227,44 +227,76 @@
 
     .page4-layer--back {
       z-index: 1;
-      opacity: 1;
+      opacity: 0;
+      filter: blur(16px) brightness(1.08);
+      transition:
+        opacity var(--page4-fade-duration) var(--page4-fade-ease),
+        filter var(--page4-fade-duration) var(--page4-fade-ease);
     }
 
     .page4-layer--front {
       z-index: 2;
       opacity: 1;
-      will-change: -webkit-mask-image, mask-image;
+      filter: blur(0px) brightness(1);
+      will-change: opacity, filter;
+      transition:
+        opacity var(--page4-fade-duration) var(--page4-fade-ease),
+        filter var(--page4-fade-duration) var(--page4-fade-ease);
     }
 
     .page4-layer--hand {
       z-index: 4;
       opacity: 1;
-      transition: opacity 420ms ease;
+      transition:
+        opacity var(--page4-fade-duration) var(--page4-fade-ease),
+        filter var(--page4-fade-duration) var(--page4-fade-ease);
     }
 
     .page4-layer--hand-alt {
       z-index: 4;
       opacity: 0;
-      transition: opacity 420ms ease;
+      filter: blur(8px) brightness(1.06);
+      transition:
+        opacity var(--page4-fade-duration) var(--page4-fade-ease),
+        filter var(--page4-fade-duration) var(--page4-fade-ease);
+    }
+
+    .page4-scene.is-page4-flipped .page4-layer--back {
+      opacity: 1;
+      filter: blur(0px) brightness(1);
+    }
+
+    .page4-scene.is-page4-flipped .page4-layer--front {
+      opacity: 0;
+      filter: blur(14px) brightness(0.9);
     }
 
     .page4-scene.is-page4-flipped .page4-layer--hand {
       opacity: 0;
+      filter: blur(12px) brightness(0.9);
     }
 
     .page4-scene.is-page4-flipped .page4-layer--hand-alt {
       opacity: 1;
-    }
-
-    .page4-scene.is-page4-flipped {
-      --orb-ripple-offset-x: 20px;
+      filter: blur(0px) brightness(1);
     }
 
     .ripple-layer {
       position: absolute;
       inset: 0;
-      z-index: 3;
+      z-index: 4;
       pointer-events: none;
+    }
+
+    .page4-preview-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 6;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms linear;
     }
 
     .ripple-filter-defs {
@@ -280,49 +312,37 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      clip-path: ellipse(
-        var(--water-radius-x)
-        var(--water-radius-y)
-        at var(--water-center-x) var(--water-center-y)
-      );
     }
 
     .ripple-source {
       object-fit: cover;
       object-position: center;
       filter: url(#page4-water-distortion);
-      opacity: 0.34;
+      opacity: 0.3;
+      -webkit-mask-image: radial-gradient(
+        ellipse var(--water-radius-x) var(--water-radius-y) at var(--water-center-x) var(--water-center-y),
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) 68%,
+        rgba(0, 0, 0, 0.86) 78%,
+        rgba(0, 0, 0, 0.42) 90%,
+        rgba(0, 0, 0, 0) 100%
+      );
+      mask-image: radial-gradient(
+        ellipse var(--water-radius-x) var(--water-radius-y) at var(--water-center-x) var(--water-center-y),
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) 68%,
+        rgba(0, 0, 0, 0.86) 78%,
+        rgba(0, 0, 0, 0.42) 90%,
+        rgba(0, 0, 0, 0) 100%
+      );
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
       transform-origin: var(--water-center-x) var(--water-center-y);
       animation: page4-water-drift 14s linear infinite;
     }
 
     .ripple-wave {
-      background:
-        radial-gradient(
-          ellipse at 50% 56%,
-          rgba(255, 255, 255, 0.14) 0%,
-          rgba(255, 255, 255, 0.09) 16%,
-          rgba(255, 255, 255, 0.03) 34%,
-          rgba(255, 255, 255, 0) 56%
-        ),
-        radial-gradient(
-          ellipse at 50% 56%,
-          rgba(255, 255, 255, 0) 26%,
-          rgba(255, 255, 255, 0.06) 39%,
-          rgba(255, 255, 255, 0.02) 48%,
-          rgba(255, 255, 255, 0) 64%
-        ),
-        radial-gradient(
-          ellipse at 50% 56%,
-          rgba(255, 255, 255, 0) 48%,
-          rgba(255, 255, 255, 0.035) 59%,
-          rgba(255, 255, 255, 0) 72%
-        );
-      mix-blend-mode: screen;
-      filter: blur(10px);
-      opacity: 0;
-      transform-origin: var(--water-center-x) var(--water-center-y);
-      animation: page4-water-wave 8.4s linear infinite;
+      display: none;
     }
 
     .ripple-wave--2 {
@@ -333,193 +353,67 @@
       animation-delay: -5.6s;
     }
 
-    .orb-effect-layer {
+    .page4-ball-layer {
       position: absolute;
       inset: 0;
       z-index: 5;
       pointer-events: none;
     }
 
-    .orb-effect-layer--debug {
-      z-index: 8;
-    }
-
-    .orb-core {
-      position: absolute;
-      left: var(--orb-x);
-      top: var(--orb-y);
-      width: var(--orb-size);
-      aspect-ratio: 1;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      overflow: hidden;
-      animation: none;
-      isolation: isolate;
-      will-change: opacity, transform;
-    }
-
-    .orb-ripple-layer {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 250%;
-      height: 250%;
-      transform: translate(calc(-50% + var(--orb-ripple-offset-x)), -50%);
-      pointer-events: none;
-    }
-
-    .orb-effect-layer--debug .orb-core {
-      outline: 1px solid rgba(0, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .orb-effect-layer--debug .orb-ripple-layer {
-      width: 280%;
-      height: 280%;
-      outline: 1px dashed rgba(255, 80, 80, 0.45);
-    }
-
-    .orb-ripple-wave {
+    .page4-ball {
       position: absolute;
       inset: 0;
-      border-radius: 50%;
-      background:
-        radial-gradient(
-          ellipse at 50% 56%,
-          rgba(255, 255, 255, 0.18) 0%,
-          rgba(255, 255, 255, 0.11) 16%,
-          rgba(255, 255, 255, 0.04) 34%,
-          rgba(255, 255, 255, 0) 56%
-        ),
-        radial-gradient(
-          ellipse at 50% 56%,
-          rgba(255, 255, 255, 0) 26%,
-          rgba(255, 255, 255, 0.08) 39%,
-          rgba(255, 255, 255, 0.03) 48%,
-          rgba(255, 255, 255, 0) 64%
-        ),
-        radial-gradient(
-          ellipse at 50% 56%,
-          rgba(255, 255, 255, 0) 48%,
-          rgba(255, 255, 255, 0.05) 59%,
-          rgba(255, 255, 255, 0) 72%
-        );
-      filter: blur(8px);
-      mix-blend-mode: screen;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+      will-change: opacity, filter;
+    }
+
+    .page4-ball--bg1 {
+      opacity: 1;
+      filter: url(#page4-ball-wave-dark) blur(0px) brightness(1);
+      transition:
+        opacity calc(var(--page4-fade-duration) * 0.82) var(--page4-fade-ease),
+        filter calc(var(--page4-fade-duration) * 0.82) var(--page4-fade-ease);
+    }
+
+    .page4-ball--bg2 {
       opacity: 0;
-      transform-origin: center;
-      animation: page4-orb-ripple-wave 8.4s linear infinite;
+      filter: url(#page4-ball-wave-light) blur(14px) brightness(1.08);
+      transition:
+        opacity calc(var(--page4-fade-duration) * 0.88) var(--page4-fade-ease) 160ms,
+        filter calc(var(--page4-fade-duration) * 0.88) var(--page4-fade-ease) 160ms;
     }
 
-    .orb-effect-layer--debug .orb-ripple-wave {
-      background:
-        radial-gradient(
-          ellipse at 50% 50%,
-          rgba(0, 0, 0, 0) 0 44%,
-          rgba(0, 255, 255, 0.95) 45% 48%,
-          rgba(0, 0, 0, 0) 49% 100%
-        ),
-        radial-gradient(
-          ellipse at 50% 50%,
-          rgba(0, 0, 0, 0) 0 60%,
-          rgba(255, 80, 80, 0.9) 61% 64%,
-          rgba(0, 0, 0, 0) 65% 100%
-        ),
-        radial-gradient(
-          ellipse at 50% 50%,
-          rgba(0, 0, 0, 0) 0 76%,
-          rgba(255, 214, 64, 0.8) 77% 79%,
-          rgba(0, 0, 0, 0) 80% 100%
-        );
-      filter: none;
-      mix-blend-mode: normal;
+    .page4-scene.is-page4-flipped .page4-ball--bg1 {
       opacity: 0;
-      z-index: 2;
-      animation: page4-orb-ripple-debug 3s linear infinite;
+      filter: url(#page4-ball-wave-dark) blur(12px) brightness(0.9);
     }
 
-    .orb-ripple-wave--2 {
-      animation-delay: -2.8s;
-    }
-
-    .orb-ripple-wave--3 {
-      animation-delay: -5.6s;
-    }
-
-    .orb-effect-layer--debug .orb-ripple-wave--2 {
-      animation-delay: -1s;
-    }
-
-    .orb-effect-layer--debug .orb-ripple-wave--3 {
-      animation-delay: -2s;
-    }
-
-    .orb-glow {
-      display: none;
-    }
-
-    .orb-line {
-      display: none;
-    }
-
-    .page4-scene.is-orb-bursting .orb-core {
-      animation: none;
-    }
-
-    @keyframes page4-orb-ripple-wave {
-      0% {
-        opacity: 0;
-        transform: scale(0.18);
-      }
-      22% {
-        opacity: 0.16;
-      }
-      52% {
-        opacity: 0.32;
-      }
-      72% {
-        opacity: 0.12;
-        transform: scale(0.74);
-      }
-      100% {
-        opacity: 0;
-        transform: scale(1);
-      }
-    }
-
-    @keyframes page4-orb-ripple-debug {
-      0% {
-        opacity: 0;
-        transform: scale(0.15);
-      }
-      18% {
-        opacity: 0.9;
-      }
-      58% {
-        opacity: 1;
-        transform: scale(0.72);
-      }
-      100% {
-        opacity: 0;
-        transform: scale(1);
-      }
+    .page4-scene.is-page4-flipped .page4-ball--bg2 {
+      opacity: 1;
+      filter: url(#page4-ball-wave-light) blur(0px) brightness(1);
     }
 
     @keyframes page4-water-drift {
       0% {
-        transform: scale(1.005) translate3d(-0.45%, 0.65%, 0);
+        transform: scale(1.012) translate3d(-0.7%, 0.92%, 0);
       }
       25% {
-        transform: scale(1.012) translate3d(-0.15%, 0.4%, 0);
+        transform: scale(1.022) translate3d(-0.2%, 0.56%, 0);
       }
       50% {
-        transform: scale(1.02) translate3d(0.15%, 0.12%, 0);
+        transform: scale(1.035) translate3d(0.26%, 0.18%, 0);
       }
       75% {
-        transform: scale(1.03) translate3d(0.42%, -0.08%, 0);
+        transform: scale(1.048) translate3d(0.58%, -0.14%, 0);
       }
       100% {
-        transform: scale(1.04) translate3d(0.7%, -0.24%, 0);
+        transform: scale(1.06) translate3d(0.96%, -0.34%, 0);
       }
     }
 
@@ -541,46 +435,6 @@
       }
     }
 
-    @keyframes page4-orb-pulse {
-      0%, 100% {
-        transform: translate(-50%, -50%) scale(0.96);
-      }
-      50% {
-        transform: translate(-50%, -50%) scale(1.045);
-      }
-    }
-
-    @keyframes page4-orb-burst {
-      0% {
-        transform: translate(-50%, -50%) scale(1);
-      }
-      38% {
-        transform: translate(-50%, -50%) scale(1.18);
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(1);
-      }
-    }
-
-    @keyframes page4-orb-fluid-breathe {
-      0% {
-        transform: translateX(var(--orb-fluid-offset-x)) scale(0.98);
-        opacity: 0.78;
-      }
-      34% {
-        transform: translateX(var(--orb-fluid-offset-x)) scale(1.03);
-        opacity: 0.9;
-      }
-      68% {
-        transform: translateX(var(--orb-fluid-offset-x)) scale(1.01);
-        opacity: 0.82;
-      }
-      100% {
-        transform: translateX(var(--orb-fluid-offset-x)) scale(0.99);
-        opacity: 0.76;
-      }
-    }
-
     .water-hotspot {
       position: absolute;
       left: var(--water-left);
@@ -588,10 +442,10 @@
       width: var(--water-width);
       height: var(--water-height);
       border-radius: 50%;
-      background: rgba(255, 0, 0, 0.08);
-      outline: 1px solid rgba(255, 0, 0, 0.28);
-      z-index: 6;
-      pointer-events: auto;
+      background: transparent;
+      outline: none;
+      z-index: 7;
+      pointer-events: none;
     }
 
     .page__folio-img {
@@ -1586,84 +1440,85 @@
       <div class="page4-scene" aria-hidden="true">
         <img class="page4-layer page4-layer--back" src="outputs/assets/images/page4/page4_bg2.png" alt="">
         <img class="page4-layer page4-layer--front" src="outputs/assets/images/page4/page4_bg.png" alt="">
+        <canvas class="page4-preview-layer" id="page4PreviewLayer" aria-hidden="true"></canvas>
         <div class="ripple-layer">
           <svg class="ripple-filter-defs" aria-hidden="true" focusable="false">
             <defs>
               <filter id="page4-water-distortion" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
                 <feTurbulence
                   type="fractalNoise"
-                  baseFrequency="0.012 0.045"
+                  baseFrequency="0.015 0.052"
                   numOctaves="2"
                   seed="17"
                   result="noise">
                   <animate
                     attributeName="baseFrequency"
                     dur="10s"
-                    values="0.012 0.045;0.017 0.055;0.011 0.041;0.012 0.045"
+                    values="0.015 0.052;0.021 0.064;0.013 0.047;0.015 0.052"
                     repeatCount="indefinite" />
                 </feTurbulence>
                 <feDisplacementMap
                   in="SourceGraphic"
                   in2="noise"
-                  scale="12"
-                  xChannelSelector="R"
-                  yChannelSelector="B">
-                  <animate
-                    attributeName="scale"
-                    dur="8.6s"
-                    values="8;14;10;13;8"
-                    repeatCount="indefinite" />
-                </feDisplacementMap>
-              </filter>
-              <filter id="page4-orb-fluid-dark" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-                <feTurbulence
-                  type="fractalNoise"
-                  baseFrequency="0.022 0.034"
-                  numOctaves="3"
-                  seed="29"
-                  result="orbDarkNoise">
-                  <animate
-                    attributeName="baseFrequency"
-                    dur="12.6s"
-                    values="0.022 0.034;0.018 0.04;0.026 0.028;0.022 0.034"
-                    repeatCount="indefinite" />
-                </feTurbulence>
-                <feDisplacementMap
-                  in="SourceGraphic"
-                  in2="orbDarkNoise"
                   scale="16"
                   xChannelSelector="R"
                   yChannelSelector="B">
                   <animate
                     attributeName="scale"
-                    dur="10.8s"
-                    values="12;20;15;18;12"
+                    dur="8.6s"
+                    values="11;19;14;18;11"
                     repeatCount="indefinite" />
                 </feDisplacementMap>
               </filter>
-              <filter id="page4-orb-fluid-light" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+              <filter id="page4-ball-wave-dark" x="-16%" y="-16%" width="132%" height="132%" color-interpolation-filters="sRGB">
                 <feTurbulence
                   type="fractalNoise"
-                  baseFrequency="0.02 0.03"
-                  numOctaves="3"
-                  seed="43"
-                  result="orbLightNoise">
+                  baseFrequency="0.012 0.038"
+                  numOctaves="2"
+                  seed="23"
+                  result="ballWaveDarkNoise">
                   <animate
                     attributeName="baseFrequency"
-                    dur="13.4s"
-                    values="0.02 0.03;0.017 0.036;0.024 0.026;0.02 0.03"
+                    dur="11.4s"
+                    values="0.012 0.038;0.016 0.046;0.011 0.034;0.012 0.038"
                     repeatCount="indefinite" />
                 </feTurbulence>
                 <feDisplacementMap
                   in="SourceGraphic"
-                  in2="orbLightNoise"
-                  scale="14"
+                  in2="ballWaveDarkNoise"
+                  scale="8"
                   xChannelSelector="R"
                   yChannelSelector="B">
                   <animate
                     attributeName="scale"
-                    dur="11.6s"
-                    values="10;18;13;16;10"
+                    dur="9.2s"
+                    values="5;9;6;8;5"
+                    repeatCount="indefinite" />
+                </feDisplacementMap>
+              </filter>
+              <filter id="page4-ball-wave-light" x="-16%" y="-16%" width="132%" height="132%" color-interpolation-filters="sRGB">
+                <feTurbulence
+                  type="fractalNoise"
+                  baseFrequency="0.011 0.034"
+                  numOctaves="2"
+                  seed="31"
+                  result="ballWaveLightNoise">
+                  <animate
+                    attributeName="baseFrequency"
+                    dur="12s"
+                    values="0.011 0.034;0.015 0.041;0.01 0.032;0.011 0.034"
+                    repeatCount="indefinite" />
+                </feTurbulence>
+                <feDisplacementMap
+                  in="SourceGraphic"
+                  in2="ballWaveLightNoise"
+                  scale="7"
+                  xChannelSelector="R"
+                  yChannelSelector="B">
+                  <animate
+                    attributeName="scale"
+                    dur="9.6s"
+                    values="4;8;5;7;4"
                     repeatCount="indefinite" />
                 </feDisplacementMap>
               </filter>
@@ -1674,14 +1529,9 @@
           <div class="ripple-wave ripple-wave--2"></div>
           <div class="ripple-wave ripple-wave--3"></div>
         </div>
-        <div class="orb-effect-layer orb-effect-layer--debug" aria-hidden="true">
-          <div class="orb-core">
-            <div class="orb-ripple-layer">
-              <div class="orb-ripple-wave orb-ripple-wave--1"></div>
-              <div class="orb-ripple-wave orb-ripple-wave--2"></div>
-              <div class="orb-ripple-wave orb-ripple-wave--3"></div>
-            </div>
-          </div>
+        <div class="page4-ball-layer" aria-hidden="true">
+          <img class="page4-ball page4-ball--bg1" src="outputs/assets/images/page4/ball1.png" alt="">
+          <img class="page4-ball page4-ball--bg2" src="outputs/assets/images/page4/ball2.png" alt="">
         </div>
         <img class="page4-layer page4-layer--hand" src="outputs/assets/images/page4/page4hand_bg.png" alt="">
         <img class="page4-layer page4-layer--hand-alt" src="outputs/assets/images/page4/page4_bg2hand.png" alt="">
@@ -2175,16 +2025,23 @@
     const bgAudio = document.getElementById("bgAudio");
     const scrollHint = document.getElementById("scrollHint");
     const page4Scene = document.querySelector(".page4-scene");
+    const page4BackLayer = document.querySelector(".page4-layer--back");
     const page4FrontLayer = document.querySelector(".page4-layer--front");
+    const page4HandAltLayer = document.querySelector(".page4-layer--hand-alt");
     const page4WaterHotspot = document.querySelector(".water-hotspot");
+    const page4BallBg2Layer = document.querySelector(".page4-ball--bg2");
+    const page4PreviewLayer = document.getElementById("page4PreviewLayer");
+    const page4PreviewCtx = page4PreviewLayer ? page4PreviewLayer.getContext("2d") : null;
+    const page4ScratchMaskCanvas = page4PreviewCtx ? document.createElement("canvas") : null;
+    const page4ScratchMaskCtx = page4ScratchMaskCanvas ? page4ScratchMaskCanvas.getContext("2d") : null;
     const PAGE3_INDEX = 2;
     const PAGE4_INDEX = 3;
     const PAGE3_BG_PATH = "outputs/assets/images/page3/page3_bg.png";
     const PAGE4_REVEAL_STROKE_DISTANCE = 30;
-    const PAGE4_FLIP_TRIGGER_STROKES = 3;
-    const PAGE4_FLIP_DURATION = 1820;
-    const PAGE4_FLIP_FEATHER_MIN = 120;
-    const PAGE4_FLIP_FEATHER_MAX = 240;
+    const PAGE4_FLIP_TRIGGER_STROKES = 4;
+    const PAGE4_STROKE_GESTURE_COOLDOWN_MS = 420;
+    const PAGE4_SCRATCH_BRUSH_RADIUS = 132;
+    const PAGE4_SCRATCH_BRUSH_STEP = 28;
 
     const frames = new Array(CONFIG.totalFrames + 1);
     const loadingPromises = new Map();
@@ -2207,11 +2064,12 @@
     const AUDIO_ENABLED = false;
     let soundEnabled = false;
     let page4StrokeCount = 0;
+    let page4StrokeLocked = false;
     let page4LastStrokePoint = null;
-    let page4RevealRaf = null;
+    let page4LastTrailPoint = null;
+    let page4StrokeUnlockTimer = 0;
+    let page4ScratchHasMarks = false;
     let page4IsFlipped = false;
-    let page4FlipClassTimer = null;
-    let page4OrbBurstTimer = null;
 
     const pageContentState = pageContents.map(() => ({ opacity: 0, translateY: 0 }));
 
@@ -2378,10 +2236,8 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    function drawCover(img) {
+    function drawCoverToContext(targetCtx, img, cw = window.innerWidth, ch = window.innerHeight) {
       if (!img) return;
-      const cw = window.innerWidth;
-      const ch = window.innerHeight;
       const ir = img.width / img.height;
       const cr = cw / ch;
       let dw, dh, dx, dy;
@@ -2398,7 +2254,58 @@
         dy = (ch - dh) * 0.5;
       }
 
-      ctx.drawImage(img, dx, dy, dw, dh);
+      targetCtx.drawImage(img, dx, dy, dw, dh);
+    }
+
+    function drawCover(img) {
+      drawCoverToContext(ctx, img, window.innerWidth, window.innerHeight);
+    }
+
+    function resizePage4PreviewCanvas() {
+      if (!page4PreviewLayer || !page4PreviewCtx) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let scratchSnapshot = null;
+
+      if (
+        page4ScratchMaskCanvas &&
+        page4ScratchMaskCtx &&
+        page4ScratchMaskCanvas.width > 0 &&
+        page4ScratchMaskCanvas.height > 0
+      ) {
+        scratchSnapshot = document.createElement("canvas");
+        scratchSnapshot.width = page4ScratchMaskCanvas.width;
+        scratchSnapshot.height = page4ScratchMaskCanvas.height;
+        scratchSnapshot
+          .getContext("2d")
+          .drawImage(page4ScratchMaskCanvas, 0, 0);
+      }
+
+      page4PreviewLayer.width = Math.floor(window.innerWidth * dpr);
+      page4PreviewLayer.height = Math.floor(window.innerHeight * dpr);
+      page4PreviewCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      if (page4ScratchMaskCanvas && page4ScratchMaskCtx) {
+        page4ScratchMaskCanvas.width = page4PreviewLayer.width;
+        page4ScratchMaskCanvas.height = page4PreviewLayer.height;
+        page4ScratchMaskCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        if (scratchSnapshot) {
+          page4ScratchMaskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+          page4ScratchMaskCtx.drawImage(
+            scratchSnapshot,
+            0,
+            0,
+            scratchSnapshot.width,
+            scratchSnapshot.height,
+            0,
+            0,
+            window.innerWidth,
+            window.innerHeight
+          );
+        }
+      }
+
+      renderPage4RevealPreview();
     }
 
     function renderFrame(frameIndex) {
@@ -2452,76 +2359,100 @@
       return 1 - Math.pow(1 - t, 3);
     }
 
-    function resetPage4StrokeTracking() {
-      page4StrokeCount = 0;
-      page4LastStrokePoint = null;
-    }
-
-    function getPage4RevealMetrics() {
-      if (!page4Scene) {
-        return null;
-      }
-
+    function getPage4LocalPoint(event) {
+      if (!page4Scene) return null;
       const rect = page4Scene.getBoundingClientRect();
-      const styles = window.getComputedStyle(page4Scene);
-      const centerXRatio = (parseFloat(styles.getPropertyValue("--water-center-x")) || 64.9) / 100;
-      const centerYRatio = (parseFloat(styles.getPropertyValue("--water-center-y")) || 90) / 100;
-      const centerX = rect.width * centerXRatio;
-      const centerY = rect.height * centerYRatio;
-      const distances = [
-        Math.hypot(centerX, centerY),
-        Math.hypot(rect.width - centerX, centerY),
-        Math.hypot(centerX, rect.height - centerY),
-        Math.hypot(rect.width - centerX, rect.height - centerY),
-      ];
-
       return {
-        centerX,
-        centerY,
-        maxRadius: Math.max(...distances) * 1.16,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
       };
     }
 
-    function applyPage4FlipMask(progress) {
-      if (!page4FrontLayer) return;
+    function paintPage4ScratchBrush(x, y, strength = 1) {
+      if (!page4ScratchMaskCtx || !page4ScratchMaskCanvas) return;
+      const radius = PAGE4_SCRATCH_BRUSH_RADIUS * (0.92 + strength * 0.12);
+      const gradient = page4ScratchMaskCtx.createRadialGradient(x, y, 0, x, y, radius);
+      gradient.addColorStop(0, "rgba(255,255,255,0.98)");
+      gradient.addColorStop(0.22, "rgba(255,255,255,0.94)");
+      gradient.addColorStop(0.52, "rgba(255,255,255,0.78)");
+      gradient.addColorStop(0.82, "rgba(255,255,255,0.24)");
+      gradient.addColorStop(1, "rgba(255,255,255,0)");
+      page4ScratchMaskCtx.fillStyle = gradient;
+      page4ScratchMaskCtx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+      page4ScratchHasMarks = true;
+    }
 
-      const metrics = getPage4RevealMetrics();
-      if (!metrics) return;
+    function applyPage4ScratchTrail(from, to, distance) {
+      const steps = Math.max(1, Math.ceil(distance / PAGE4_SCRATCH_BRUSH_STEP));
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        paintPage4ScratchBrush(
+          lerp(from.x, to.x, t),
+          lerp(from.y, to.y, t),
+          0.9
+        );
+      }
+      renderPage4RevealPreview();
+    }
 
-      const clamped = clamp(progress, 0, 1);
-      const eased = easeOutCubic(clamped);
-      const wobble = (1 - eased) * 22;
-      const pulse = Math.sin(eased * Math.PI * 3.2) * wobble;
-      const centerX = metrics.centerX + Math.sin(eased * Math.PI * 2.1) * wobble * 0.18;
-      const centerY = metrics.centerY + Math.cos(eased * Math.PI * 1.7) * wobble * 0.12;
-      const radius = Math.max(0, metrics.maxRadius * eased + pulse);
-      const feather = lerp(PAGE4_FLIP_FEATHER_MIN, PAGE4_FLIP_FEATHER_MAX, eased * 0.9);
-      const edgeSoftStart = Math.max(0, radius - feather);
-      const edgeMid = Math.max(edgeSoftStart + 12, radius - feather * 0.48);
-      const edgeNear = Math.max(edgeMid + 10, radius - feather * 0.18);
-      const mask = `radial-gradient(circle at ${centerX.toFixed(2)}px ${centerY.toFixed(2)}px,
-        rgba(0, 0, 0, 0) 0px,
-        rgba(0, 0, 0, 0) ${edgeSoftStart.toFixed(2)}px,
-        rgba(0, 0, 0, 0.10) ${edgeMid.toFixed(2)}px,
-        rgba(0, 0, 0, 0.38) ${edgeNear.toFixed(2)}px,
-        rgba(0, 0, 0, 0.78) ${(radius + feather * 0.12).toFixed(2)}px,
-        rgba(0, 0, 0, 1) ${(radius + feather).toFixed(2)}px
-      )`;
+    function clearPage4StrokeUnlockTimer() {
+      if (page4StrokeUnlockTimer) {
+        window.clearTimeout(page4StrokeUnlockTimer);
+        page4StrokeUnlockTimer = 0;
+      }
+    }
 
-      page4FrontLayer.style.webkitMaskImage = mask;
-      page4FrontLayer.style.maskImage = mask;
-      page4FrontLayer.style.webkitMaskRepeat = "no-repeat";
-      page4FrontLayer.style.maskRepeat = "no-repeat";
-      page4FrontLayer.style.webkitMaskMode = "alpha";
-      page4FrontLayer.style.maskMode = "alpha";
+    function schedulePage4StrokeUnlock() {
+      clearPage4StrokeUnlockTimer();
+      page4StrokeUnlockTimer = window.setTimeout(() => {
+        page4StrokeLocked = false;
+        page4LastStrokePoint = null;
+        page4StrokeUnlockTimer = 0;
+      }, PAGE4_STROKE_GESTURE_COOLDOWN_MS);
+    }
+
+    function renderPage4RevealPreview() {
+      if (!page4PreviewLayer || !page4PreviewCtx) return;
+
+      page4PreviewCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      if (page4IsFlipped || !page4BackLayer || !page4ScratchMaskCanvas || !page4ScratchHasMarks) {
+        page4PreviewLayer.style.opacity = "0";
+        return;
+      }
+
+      drawCoverToContext(page4PreviewCtx, page4BackLayer, window.innerWidth, window.innerHeight);
+      if (page4BallBg2Layer) {
+        drawCoverToContext(page4PreviewCtx, page4BallBg2Layer, window.innerWidth, window.innerHeight);
+      }
+      if (page4HandAltLayer) {
+        drawCoverToContext(page4PreviewCtx, page4HandAltLayer, window.innerWidth, window.innerHeight);
+      }
+      page4PreviewCtx.globalCompositeOperation = "destination-in";
+      page4PreviewCtx.drawImage(page4ScratchMaskCanvas, 0, 0, window.innerWidth, window.innerHeight);
+      page4PreviewCtx.globalCompositeOperation = "source-over";
+      page4PreviewLayer.style.opacity = "1";
+    }
+
+    function resetPage4StrokeTracking() {
+      page4StrokeCount = 0;
+      page4StrokeLocked = false;
+      page4LastStrokePoint = null;
+      page4LastTrailPoint = null;
+      clearPage4StrokeUnlockTimer();
     }
 
     function clearPage4Reveal() {
-      if (page4RevealRaf !== null) {
-        window.cancelAnimationFrame(page4RevealRaf);
-        page4RevealRaf = null;
+      if (page4PreviewCtx) {
+        page4PreviewCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       }
-
+      if (page4ScratchMaskCtx) {
+        page4ScratchMaskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      }
+      page4ScratchHasMarks = false;
+      if (page4PreviewLayer) {
+        page4PreviewLayer.style.opacity = "0";
+      }
       if (!page4FrontLayer) return;
 
       page4FrontLayer.style.webkitMaskImage = "";
@@ -2534,82 +2465,68 @@
 
     function resetPage4FlipState() {
       page4IsFlipped = false;
-      if (page4FlipClassTimer !== null) {
-        window.clearTimeout(page4FlipClassTimer);
-        page4FlipClassTimer = null;
-      }
-      if (page4OrbBurstTimer !== null) {
-        window.clearTimeout(page4OrbBurstTimer);
-        page4OrbBurstTimer = null;
-      }
       if (page4Scene) {
         page4Scene.classList.remove("is-page4-flipped");
-        page4Scene.classList.remove("is-orb-bursting");
       }
       clearPage4Reveal();
       resetPage4StrokeTracking();
     }
 
     function startPage4FlipReveal() {
-      if (!page4Scene || !page4FrontLayer || page4IsFlipped) return;
+      if (!page4Scene || page4IsFlipped) return;
 
       page4IsFlipped = true;
-      page4Scene.classList.add("is-orb-bursting");
-      page4FlipClassTimer = window.setTimeout(() => {
-        if (!page4Scene) return;
-        page4Scene.classList.add("is-page4-flipped");
-        page4FlipClassTimer = null;
-      }, 140);
-      page4OrbBurstTimer = window.setTimeout(() => {
-        if (!page4Scene) return;
-        page4Scene.classList.remove("is-orb-bursting");
-        page4OrbBurstTimer = null;
-      }, 920);
-      const startedAt = performance.now();
-
-      if (page4RevealRaf !== null) {
-        window.cancelAnimationFrame(page4RevealRaf);
-        page4RevealRaf = null;
-      }
-
-      const step = (now) => {
-        const progress = clamp((now - startedAt) / PAGE4_FLIP_DURATION, 0, 1);
-        applyPage4FlipMask(progress);
-
-        if (progress < 1) {
-          page4RevealRaf = window.requestAnimationFrame(step);
-          return;
-        }
-
-        applyPage4FlipMask(1);
-        page4RevealRaf = null;
-      };
-
-      page4RevealRaf = window.requestAnimationFrame(step);
+      clearPage4Reveal();
+      page4Scene.classList.add("is-page4-flipped");
     }
 
-    function handlePage4WaterMove(event) {
+    function handlePage4SceneMove(event) {
       if (page4IsFlipped) {
         return;
       }
 
-      const point = { x: event.clientX, y: event.clientY };
+      const point = getPage4LocalPoint(event);
+      if (!point) return;
+
+      if (!page4LastTrailPoint) {
+        page4LastTrailPoint = point;
+        page4LastStrokePoint = point;
+        return;
+      }
+
+      const trailDx = point.x - page4LastTrailPoint.x;
+      const trailDy = point.y - page4LastTrailPoint.y;
+      const trailDistance = Math.hypot(trailDx, trailDy);
+
+      if (trailDistance < 4) {
+        return;
+      }
+
+      applyPage4ScratchTrail(page4LastTrailPoint, point, trailDistance);
+      page4LastTrailPoint = point;
 
       if (!page4LastStrokePoint) {
         page4LastStrokePoint = point;
         return;
       }
 
-      const dx = point.x - page4LastStrokePoint.x;
-      const dy = point.y - page4LastStrokePoint.y;
-      const distance = Math.hypot(dx, dy);
+      if (page4StrokeLocked) {
+        schedulePage4StrokeUnlock();
+        return;
+      }
 
-      if (distance < PAGE4_REVEAL_STROKE_DISTANCE) {
+      const strokeDx = point.x - page4LastStrokePoint.x;
+      const strokeDy = point.y - page4LastStrokePoint.y;
+      const strokeDistance = Math.hypot(strokeDx, strokeDy);
+
+      if (strokeDistance < PAGE4_REVEAL_STROKE_DISTANCE) {
         return;
       }
 
       page4StrokeCount += 1;
+      page4StrokeLocked = true;
       page4LastStrokePoint = point;
+      schedulePage4StrokeUnlock();
 
       if (page4StrokeCount >= PAGE4_FLIP_TRIGGER_STROKES) {
         startPage4FlipReveal();
@@ -2974,17 +2891,22 @@
       }
     });
 
-    if (page4WaterHotspot) {
-      page4WaterHotspot.addEventListener("mouseenter", (event) => {
+    if (page4Scene) {
+      page4Scene.addEventListener("mouseenter", (event) => {
         if (page4IsFlipped) return;
-        resetPage4StrokeTracking();
-        page4LastStrokePoint = { x: event.clientX, y: event.clientY };
+        const point = getPage4LocalPoint(event);
+        page4StrokeLocked = false;
+        clearPage4StrokeUnlockTimer();
+        page4LastStrokePoint = point;
+        page4LastTrailPoint = point;
       });
 
-      page4WaterHotspot.addEventListener("mousemove", handlePage4WaterMove);
-      page4WaterHotspot.addEventListener("mouseleave", () => {
-        if (page4IsFlipped) return;
-        resetPage4StrokeTracking();
+      page4Scene.addEventListener("mousemove", handlePage4SceneMove);
+      page4Scene.addEventListener("mouseleave", () => {
+        page4StrokeLocked = false;
+        page4LastStrokePoint = null;
+        page4LastTrailPoint = null;
+        clearPage4StrokeUnlockTimer();
       });
     }
 
@@ -3199,9 +3121,11 @@
        初始化
        ═══════════════════════════════════════════ */
     resizeCanvas();
+    resizePage4PreviewCanvas();
     updateSoundToggleUI();
     window.addEventListener("resize", () => {
       resizeCanvas();
+      resizePage4PreviewCanvas();
       resizeCursorCanvas();
     });
     window.addEventListener("scroll", onScroll, { passive: true });
