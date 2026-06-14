@@ -2038,10 +2038,11 @@
     const PAGE4_INDEX = 3;
     const PAGE3_BG_PATH = "outputs/assets/images/page3/page3_bg.png";
     const PAGE4_REVEAL_STROKE_DISTANCE = 30;
-    const PAGE4_FLIP_TRIGGER_STROKES = 4;
+    const PAGE4_FLIP_TRIGGER_STROKES = 5;
     const PAGE4_STROKE_GESTURE_COOLDOWN_MS = 420;
-    const PAGE4_SCRATCH_BRUSH_RADIUS = 132;
+    const PAGE4_SCRATCH_BRUSH_RADIUS = 33;
     const PAGE4_SCRATCH_BRUSH_STEP = 28;
+    const PAGE4_TRAIL_POINT_LIFE = 1120;
 
     const frames = new Array(CONFIG.totalFrames + 1);
     const loadingPromises = new Map();
@@ -2068,7 +2069,9 @@
     let page4LastStrokePoint = null;
     let page4LastTrailPoint = null;
     let page4StrokeUnlockTimer = 0;
-    let page4ScratchHasMarks = false;
+    let page4RevealPoints = [];
+    let page4RevealLoopRaf = null;
+    let page4RevealLastFrame = 0;
     let page4IsFlipped = false;
 
     const pageContentState = pageContents.map(() => ({ opacity: 0, translateY: 0 }));
@@ -2264,22 +2267,6 @@
     function resizePage4PreviewCanvas() {
       if (!page4PreviewLayer || !page4PreviewCtx) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      let scratchSnapshot = null;
-
-      if (
-        page4ScratchMaskCanvas &&
-        page4ScratchMaskCtx &&
-        page4ScratchMaskCanvas.width > 0 &&
-        page4ScratchMaskCanvas.height > 0
-      ) {
-        scratchSnapshot = document.createElement("canvas");
-        scratchSnapshot.width = page4ScratchMaskCanvas.width;
-        scratchSnapshot.height = page4ScratchMaskCanvas.height;
-        scratchSnapshot
-          .getContext("2d")
-          .drawImage(page4ScratchMaskCanvas, 0, 0);
-      }
-
       page4PreviewLayer.width = Math.floor(window.innerWidth * dpr);
       page4PreviewLayer.height = Math.floor(window.innerHeight * dpr);
       page4PreviewCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -2288,21 +2275,6 @@
         page4ScratchMaskCanvas.width = page4PreviewLayer.width;
         page4ScratchMaskCanvas.height = page4PreviewLayer.height;
         page4ScratchMaskCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        if (scratchSnapshot) {
-          page4ScratchMaskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-          page4ScratchMaskCtx.drawImage(
-            scratchSnapshot,
-            0,
-            0,
-            scratchSnapshot.width,
-            scratchSnapshot.height,
-            0,
-            0,
-            window.innerWidth,
-            window.innerHeight
-          );
-        }
       }
 
       renderPage4RevealPreview();
@@ -2368,31 +2340,32 @@
       };
     }
 
-    function paintPage4ScratchBrush(x, y, strength = 1) {
-      if (!page4ScratchMaskCtx || !page4ScratchMaskCanvas) return;
-      const radius = PAGE4_SCRATCH_BRUSH_RADIUS * (0.92 + strength * 0.12);
-      const gradient = page4ScratchMaskCtx.createRadialGradient(x, y, 0, x, y, radius);
-      gradient.addColorStop(0, "rgba(255,255,255,0.98)");
-      gradient.addColorStop(0.22, "rgba(255,255,255,0.94)");
-      gradient.addColorStop(0.52, "rgba(255,255,255,0.78)");
-      gradient.addColorStop(0.82, "rgba(255,255,255,0.24)");
-      gradient.addColorStop(1, "rgba(255,255,255,0)");
-      page4ScratchMaskCtx.fillStyle = gradient;
-      page4ScratchMaskCtx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-      page4ScratchHasMarks = true;
+    function startPage4RevealLoop() {
+      if (page4RevealLoopRaf !== null || page4IsFlipped) return;
+      page4RevealLoopRaf = window.requestAnimationFrame(stepPage4RevealLoop);
+    }
+
+    function queuePage4TrailStamp(x, y, strength = 1) {
+      page4RevealPoints.push({
+        x,
+        y,
+        life: PAGE4_TRAIL_POINT_LIFE,
+        maxLife: PAGE4_TRAIL_POINT_LIFE,
+        radius: PAGE4_SCRATCH_BRUSH_RADIUS * (0.92 + strength * 0.12),
+      });
     }
 
     function applyPage4ScratchTrail(from, to, distance) {
       const steps = Math.max(1, Math.ceil(distance / PAGE4_SCRATCH_BRUSH_STEP));
       for (let i = 0; i <= steps; i++) {
         const t = i / steps;
-        paintPage4ScratchBrush(
+        queuePage4TrailStamp(
           lerp(from.x, to.x, t),
           lerp(from.y, to.y, t),
           0.9
         );
       }
-      renderPage4RevealPreview();
+      startPage4RevealLoop();
     }
 
     function clearPage4StrokeUnlockTimer() {
@@ -2411,15 +2384,64 @@
       }, PAGE4_STROKE_GESTURE_COOLDOWN_MS);
     }
 
+    function drawPage4TrailMask() {
+      if (!page4ScratchMaskCtx || !page4ScratchMaskCanvas) return 0;
+
+      page4ScratchMaskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      let maxAlpha = 0;
+      page4RevealPoints.forEach((point) => {
+        const lifeRatio = clamp(point.life / point.maxLife, 0, 1);
+        const easedLife = easeOutCubic(lifeRatio);
+        const radius = point.radius * (1.02 + (1 - lifeRatio) * 0.18);
+        const alpha = easedLife * 0.98;
+        const gradient = page4ScratchMaskCtx.createRadialGradient(point.x, point.y, 0, point.x, point.y, radius);
+        gradient.addColorStop(0, `rgba(255,255,255,${alpha})`);
+        gradient.addColorStop(0.42, `rgba(255,255,255,${alpha * 0.96})`);
+        gradient.addColorStop(0.72, `rgba(255,255,255,${alpha * 0.5})`);
+        gradient.addColorStop(0.9, `rgba(255,255,255,${alpha * 0.12})`);
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
+        page4ScratchMaskCtx.fillStyle = gradient;
+        page4ScratchMaskCtx.fillRect(point.x - radius, point.y - radius, radius * 2, radius * 2);
+        maxAlpha = Math.max(maxAlpha, alpha);
+      });
+
+      return maxAlpha;
+    }
+
+    function stepPage4RevealLoop(now) {
+      const dt = page4RevealLastFrame ? (now - page4RevealLastFrame) / 1000 : 1 / 60;
+      page4RevealLastFrame = now;
+
+      page4RevealPoints = page4RevealPoints
+        .map((point) => ({ ...point, life: point.life - dt * 1000 }))
+        .filter((point) => point.life > 0);
+
+      renderPage4RevealPreview();
+
+      if (!page4IsFlipped && page4RevealPoints.length) {
+        page4RevealLoopRaf = window.requestAnimationFrame(stepPage4RevealLoop);
+        return;
+      }
+
+      page4RevealLoopRaf = null;
+      page4RevealLastFrame = 0;
+    }
+
     function renderPage4RevealPreview() {
       if (!page4PreviewLayer || !page4PreviewCtx) return;
 
       page4PreviewCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-      if (page4IsFlipped || !page4BackLayer || !page4ScratchMaskCanvas || !page4ScratchHasMarks) {
+      if (page4IsFlipped || !page4BackLayer || !page4ScratchMaskCanvas || !page4RevealPoints.length) {
         page4PreviewLayer.style.opacity = "0";
+        if (page4ScratchMaskCtx) {
+          page4ScratchMaskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        }
         return;
       }
+
+      const maxAlpha = drawPage4TrailMask();
 
       drawCoverToContext(page4PreviewCtx, page4BackLayer, window.innerWidth, window.innerHeight);
       if (page4BallBg2Layer) {
@@ -2431,7 +2453,7 @@
       page4PreviewCtx.globalCompositeOperation = "destination-in";
       page4PreviewCtx.drawImage(page4ScratchMaskCanvas, 0, 0, window.innerWidth, window.innerHeight);
       page4PreviewCtx.globalCompositeOperation = "source-over";
-      page4PreviewLayer.style.opacity = "1";
+      page4PreviewLayer.style.opacity = String(clamp(maxAlpha * 1.04, 0, 1));
     }
 
     function resetPage4StrokeTracking() {
@@ -2443,13 +2465,18 @@
     }
 
     function clearPage4Reveal() {
+      if (page4RevealLoopRaf !== null) {
+        window.cancelAnimationFrame(page4RevealLoopRaf);
+        page4RevealLoopRaf = null;
+      }
+      page4RevealLastFrame = 0;
+      page4RevealPoints = [];
       if (page4PreviewCtx) {
         page4PreviewCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       }
       if (page4ScratchMaskCtx) {
         page4ScratchMaskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       }
-      page4ScratchHasMarks = false;
       if (page4PreviewLayer) {
         page4PreviewLayer.style.opacity = "0";
       }
