@@ -213,6 +213,13 @@
       pointer-events: none;
     }
 
+    .page5-frame-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
     .page5-layer {
       position: absolute;
       inset: 0;
@@ -1639,7 +1646,9 @@
     </section>
     <section class="page page--static" id="page-5">
       <div class="page5-scene" aria-hidden="true">
-        <img class="page5-layer" src="outputs/assets/images/page5/page5_1.png" alt="">
+        <div class="page5-frame-layer" id="page5FrameLayer">
+          <img class="page5-layer" id="page5FrameImage" src="outputs/assets/images/page5/page5_1.png" alt="">
+        </div>
       </div>
       <div class="page__content" id="page5Content" aria-hidden="true"></div>
     </section>
@@ -2134,10 +2143,19 @@
     const page4PreviewCtx = page4PreviewLayer ? page4PreviewLayer.getContext("2d") : null;
     const page4ScratchMaskCanvas = page4PreviewCtx ? document.createElement("canvas") : null;
     const page4ScratchMaskCtx = page4ScratchMaskCanvas ? page4ScratchMaskCanvas.getContext("2d") : null;
+    const page5FrameImage = document.getElementById("page5FrameImage");
     const PAGE2_INDEX = 1;
     const PAGE3_INDEX = 2;
     const PAGE4_INDEX = 3;
+    const PAGE5_INDEX = 4;
     const PAGE3_BG_PATH = "outputs/assets/images/page3/page3_bg.png";
+    const PAGE5_FRAME_PATHS = [
+      "outputs/assets/images/page5/page5_1.png",
+      "outputs/assets/images/page5/page5_2.png",
+      "outputs/assets/images/page5/page5_3.png",
+      "outputs/assets/images/page5/page5_4.png",
+    ];
+    const PAGE5_FRAME_INTERVAL_MS = 240;
     const PAGE4_SCRATCH_BRUSH_RADIUS = 33;
     const PAGE4_SCRATCH_BRUSH_STEP = 28;
     const PAGE4_TRAIL_POINT_LIFE = 1120;
@@ -2171,6 +2189,9 @@
     let page4RevealLoopRaf = null;
     let page4RevealLastFrame = 0;
     let page4IsFlipped = false;
+    let page5LoopTimer = 0;
+    let page5FrameIndex = 0;
+    let page5FrameImages = [];
 
     const pageContentState = pageContents.map(() => ({ opacity: 0, translateY: 0 }));
 
@@ -2688,6 +2709,35 @@
       page4PointerInsideBallRegion = isInsideBallRegion;
     }
 
+    function preloadPage5Frames() {
+      page5FrameImages = PAGE5_FRAME_PATHS.map((src) => {
+        const img = new Image();
+        img.decoding = "async";
+        img.src = src;
+        return img;
+      });
+    }
+
+    function showPage5Frame(index) {
+      if (!page5FrameImage || !PAGE5_FRAME_PATHS.length) return;
+      page5FrameIndex = index % PAGE5_FRAME_PATHS.length;
+      page5FrameImage.src = PAGE5_FRAME_PATHS[page5FrameIndex];
+    }
+
+    function startPage5Loop() {
+      if (page5LoopTimer || !page5FrameImage) return;
+      showPage5Frame(page5FrameIndex);
+      page5LoopTimer = window.setInterval(() => {
+        showPage5Frame(page5FrameIndex + 1);
+      }, PAGE5_FRAME_INTERVAL_MS);
+    }
+
+    function stopPage5Loop() {
+      if (!page5LoopTimer) return;
+      window.clearInterval(page5LoopTimer);
+      page5LoopTimer = 0;
+    }
+
     function applyPageContent(el, state, targetOpacity, targetY) {
       state.opacity = lerp(state.opacity, targetOpacity, CONFIG.textTransitionSmooth);
       state.translateY = lerp(state.translateY, targetY, CONFIG.textTransitionSmooth);
@@ -2967,6 +3017,12 @@
       if (pageIndex !== lastPageIndex) {
         if (lastPageIndex === PAGE4_INDEX && pageIndex !== PAGE4_INDEX) {
           resetPage4FlipState();
+        }
+
+        if (pageIndex === PAGE5_INDEX) {
+          startPage5Loop();
+        } else if (lastPageIndex === PAGE5_INDEX) {
+          stopPage5Loop();
         }
 
         if (pageIndex === 0 && pagePlayback[0].done) {
@@ -3369,6 +3425,7 @@
 
     requestAnimationFrame(tick);
     ensurePage3Background();
+    preloadPage5Frames();
 
     preloadFrames().then(() => {
       pagePlayback.forEach((pb, i) => {
