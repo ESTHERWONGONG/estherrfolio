@@ -384,11 +384,9 @@
       position: fixed;
       inset: 0;
       z-index: 9500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       pointer-events: none;
       visibility: hidden;
+      color: var(--gold);
     }
 
     .intro-modal:not([hidden]) {
@@ -403,10 +401,10 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(ellipse at 50% 20%, rgba(72, 96, 128, 0.22), transparent 58%),
-        rgba(0, 0, 0, 0.45);
+        radial-gradient(circle at 50% 18%, rgba(255, 206, 148, 0.08), transparent 40%),
+        rgba(0, 0, 0, 0.72);
       opacity: 0;
-      transition: opacity 0.38s ease;
+      transition: opacity 0.3s ease;
     }
 
     .intro-modal.is-active .intro-modal__shader {
@@ -415,136 +413,416 @@
 
     .intro-modal.is-closing .intro-modal__shader {
       opacity: 0;
-      transition-duration: 0.42s;
     }
 
     .intro-modal__stage {
       position: relative;
       z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: grid;
       width: 100%;
       height: 100%;
-      padding: 0;
-      box-sizing: border-box;
-      overflow: visible;
-      pointer-events: none;
+      padding: clamp(18px, 3vh, 32px);
+      place-items: center;
     }
 
-    .intro-modal__parchment {
-      --intro-zoom: 1;
-      --intro-panel-aspect: 4608 / 3858;
-      /* close 492px @ panel 3858h → 统一工具栏高度 */
-      --intro-toolbar-h: 12.753%;
+    .intro-modal__panel {
       position: relative;
-      width: min(98vw, calc((100dvh - 20px) * var(--intro-panel-aspect)));
-      margin: 0 auto;
-      pointer-events: auto;
-      overflow: visible;
-      transform-origin: center center;
-      will-change: transform, opacity;
-      transform: translateY(-120px) scale(calc(0.96 * var(--intro-zoom))) rotate(-1.2deg);
+      width: min(96vw, 1460px);
+      height: min(92vh, 980px);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 22% 18%, rgba(255, 206, 148, 0.08), transparent 28%),
+        radial-gradient(circle at 78% 26%, rgba(255, 206, 148, 0.05), transparent 30%),
+        linear-gradient(180deg, rgba(20, 16, 12, 0.96), rgba(8, 7, 6, 0.98));
+      border: 1px solid rgba(255, 206, 148, 0.32);
+      border-radius: 26px;
+      box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.56),
+        inset 0 0 0 1px rgba(255, 206, 148, 0.08);
       opacity: 0;
+      transform: translateY(32px) scale(0.985);
+      transition: transform 0.38s ease, opacity 0.38s ease;
     }
 
-    @media (max-width: 768px) {
-      .intro-modal__parchment {
-        width: 98vw;
-      }
-    }
-
-    .intro-modal__parchment > img {
-      display: block;
-      width: 100%;
-      height: auto;
-      user-select: none;
-      -webkit-user-drag: none;
-      pointer-events: none;
-    }
-
-    .intro-modal__toolbar {
+    .intro-modal__panel::before {
       position: absolute;
-      top: -10px;
-      right: 0;
-      z-index: 2;
-      display: flex;
-      flex-direction: row-reverse;
-      align-items: center;
-      gap: 1px;
-      height: var(--intro-toolbar-h);
+      inset: 12px;
+      border: 1px solid rgba(255, 206, 148, 0.18);
+      border-radius: 18px;
+      content: "";
       pointer-events: none;
     }
 
-    .intro-modal__toolbar-btn {
+    .intro-modal.is-active:not(.is-closing) .intro-modal__panel {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .intro-modal.is-closing .intro-modal__panel {
+      opacity: 0;
+      transform: translateY(-24px) scale(0.988);
+    }
+
+    .intro-modal__shell {
+      position: relative;
+      z-index: 1;
       display: flex;
-      flex: 0 0 auto;
-      align-items: center;
+      flex-direction: column;
       height: 100%;
-      padding: 0;
+      min-height: 0;
+      padding: clamp(24px, 3vw, 36px);
+    }
+
+    .intro-modal__topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: clamp(18px, 2vh, 24px);
+    }
+
+    .intro-modal__topbar-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .intro-modal__eyebrow {
       margin: 0;
-      border: none;
-      background: transparent;
-      outline: none;
-      cursor: none;
-      line-height: 0;
-      -webkit-tap-highlight-color: transparent;
-      pointer-events: auto;
+      color: rgba(255, 206, 148, 0.72);
+      font-family: var(--pt-font-en, "Cormorant Garamond", Georgia, serif);
+      font-size: 0.98rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
     }
 
-    .intro-modal__toolbar-btn:focus-visible {
-      outline: none;
+    .intro-modal__close {
+      cursor: pointer;
     }
 
-    .intro-modal__toolbar-btn img {
-      display: block;
-      height: 100%;
-      width: auto;
-      pointer-events: none;
-      user-select: none;
-      -webkit-user-drag: none;
+    .intro-modal__lang-btn {
+      min-height: var(--pt-close-size, 48px);
+      padding: 0 1.15rem;
+      color: var(--gold);
+      background: rgba(255, 206, 148, 0.08);
+      border: 1px solid rgba(255, 206, 148, 0.28);
+      border-radius: 999px;
+      font-family: var(--pt-font-en, "Cormorant Garamond", Georgia, serif);
+      font-size: 0.92rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
     }
 
-    .intro-modal__toolbar-btn--lang {
-      height: calc(100% / 3.6 * 1.3);
+    .intro-modal__lang-btn:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 4px;
     }
 
-    .intro-modal.is-opening .intro-modal__parchment,
-    .intro-modal.is-active:not(.is-closing) .intro-modal__parchment {
-      animation: parchment-drop 0.88s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    .intro-modal__scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: clamp(4px, 0.8vw, 12px);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 206, 148, 0.42) transparent;
     }
 
-    .intro-modal.is-closing .intro-modal__parchment {
-      animation: parchment-rise 0.46s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+    .intro-modal__scroll::-webkit-scrollbar {
+      width: 8px;
     }
 
-    @keyframes parchment-drop {
-      0% {
-        transform: translateY(-120px) scale(calc(0.96 * var(--intro-zoom, 2.8))) rotate(-1.2deg);
-        opacity: 0;
+    .intro-modal__scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 206, 148, 0.4);
+      border-radius: 999px;
+    }
+
+    .intro-modal__body {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.94fr) minmax(0, 1.16fr);
+      gap: clamp(28px, 3vw, 40px);
+      min-height: 100%;
+    }
+
+    .intro-modal__body[hidden] {
+      display: none;
+    }
+
+    .intro-modal__sidebar,
+    .intro-modal__main {
+      display: grid;
+      align-content: start;
+      gap: clamp(1rem, 1.8vh, 1.4rem);
+      min-width: 0;
+    }
+
+    .intro-modal__hero {
+      padding-bottom: clamp(14px, 2vh, 20px);
+      border-bottom: 1px solid rgba(255, 206, 148, 0.18);
+    }
+
+    .intro-modal__hero h2 {
+      margin: 0;
+      color: var(--gold);
+      font-family: var(--pt-font-cn, "Cormorant Garamond", Georgia, serif);
+      font-size: clamp(2.8rem, 4.6vw, 4.6rem);
+      font-weight: 500;
+      line-height: 0.94;
+    }
+
+    .intro-modal__hero h2 span {
+      display: inline-block;
+      margin-left: 0.32em;
+      font-family: var(--pt-font-en, "Cormorant Garamond", Georgia, serif);
+      font-size: 0.66em;
+      font-weight: 600;
+    }
+
+    .intro-modal__role {
+      margin: 1rem 0 0;
+      color: var(--gold);
+      font-family: var(--pt-font-en, "Cormorant Garamond", Georgia, serif);
+      font-size: clamp(1.5rem, 2.6vw, 2.3rem);
+      font-weight: 600;
+      line-height: 1.05;
+    }
+
+    .intro-modal__subtitle {
+      margin: 0.6rem 0 0;
+      color: rgba(255, 206, 148, 0.92);
+      font-size: clamp(1rem, 1.25vw, 1.16rem);
+      line-height: 1.55;
+      letter-spacing: 0.03em;
+    }
+
+    .intro-modal__summary {
+      margin: 1rem 0 0;
+      color: rgba(255, 206, 148, 0.8);
+      font-size: clamp(0.98rem, 1.08vw, 1.06rem);
+      line-height: 1.8;
+    }
+
+    .intro-modal__section {
+      display: grid;
+      gap: 0.85rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 206, 148, 0.14);
+    }
+
+    .intro-modal__section:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .intro-modal__section--boxed {
+      padding: 1.05rem 1.15rem 1.15rem;
+      border: 1px solid rgba(255, 206, 148, 0.16);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 206, 148, 0.04), rgba(255, 206, 148, 0.012)),
+        rgba(0, 0, 0, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(255, 206, 148, 0.03);
+    }
+
+    .intro-modal__section-title {
+      display: flex;
+      align-items: baseline;
+      gap: 0.7rem;
+      margin: 0;
+      color: var(--gold);
+      font-size: clamp(1.18rem, 1.45vw, 1.38rem);
+      font-weight: 600;
+      line-height: 1.15;
+    }
+
+    .intro-modal__section-title span {
+      color: rgba(255, 206, 148, 0.66);
+      font-family: var(--pt-font-en, "Cormorant Garamond", Georgia, serif);
+      font-size: 0.82em;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .intro-modal__skills {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.4rem 1.25rem;
+      margin: 0;
+      padding-left: 1.1rem;
+      color: rgba(255, 206, 148, 0.84);
+      font-size: 0.98rem;
+      line-height: 1.65;
+    }
+
+    .intro-modal__edu,
+    .intro-modal__focus,
+    .intro-modal__experience {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .intro-modal__edu-item,
+    .intro-modal__focus-item,
+    .intro-modal__experience-item,
+    .intro-modal__subentry {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .intro-modal__edu-head,
+    .intro-modal__focus-head,
+    .intro-modal__experience-head,
+    .intro-modal__subentry-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: baseline;
+    }
+
+    .intro-modal__edu-head strong,
+    .intro-modal__focus-head strong,
+    .intro-modal__experience-head strong,
+    .intro-modal__subentry-head strong {
+      color: rgba(255, 206, 148, 0.96);
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .intro-modal__edu-head em,
+    .intro-modal__focus-head em,
+    .intro-modal__experience-head em,
+    .intro-modal__subentry-head em {
+      color: rgba(255, 206, 148, 0.72);
+      font-family: var(--pt-font-en, "Cormorant Garamond", Georgia, serif);
+      font-size: 0.95rem;
+      font-style: normal;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .intro-modal__edu-item p,
+    .intro-modal__focus-item p,
+    .intro-modal__experience-item p,
+    .intro-modal__subentry p {
+      margin: 0;
+      color: rgba(255, 206, 148, 0.76);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .intro-modal__experience-item {
+      padding: 1.05rem 1.15rem 1.15rem;
+      border: 1px solid rgba(255, 206, 148, 0.18);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 206, 148, 0.05), rgba(255, 206, 148, 0.015)),
+        rgba(0, 0, 0, 0.18);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 206, 148, 0.04),
+        0 14px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    .intro-modal__experience-item:first-child {
+      padding-top: 1.05rem;
+    }
+
+    .intro-modal__experience-head strong {
+      display: grid;
+      grid-template-columns: 2.4rem 1fr;
+      align-items: start;
+      gap: 0.8rem;
+    }
+
+    .intro-modal__experience-head strong::before {
+      width: 2.4rem;
+      height: 2.4rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none'%3E%3Cpath d='M29.5 6.5a17.5 17.5 0 1 0 12 29.8A16.5 16.5 0 1 1 29.5 6.5Z' stroke='%23ffce94' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      filter: drop-shadow(0 0 10px rgba(255, 206, 148, 0.1));
+      content: "";
+    }
+
+    .intro-modal__experience-item ul,
+    .intro-modal__subentry ul {
+      margin: 0;
+      padding-left: 1.15rem;
+      color: rgba(255, 206, 148, 0.8);
+      font-size: 0.96rem;
+      line-height: 1.72;
+    }
+
+    .intro-modal__subentries {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 0.35rem;
+    }
+
+    .intro-modal__subentry {
+      padding-top: 0.8rem;
+      border-top: 1px solid rgba(255, 206, 148, 0.12);
+    }
+
+    .intro-modal__subentry:first-child {
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .intro-modal__subentry-head strong {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .intro-modal__subentry-head strong::before {
+      width: 0.95rem;
+      height: 0.95rem;
+      flex: 0 0 0.95rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M12 3.6 13.8 8.2 18.4 10 13.8 11.8 12 16.4 10.2 11.8 5.6 10 10.2 8.2 12 3.6Z' stroke='%23ffce94' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      filter: drop-shadow(0 0 8px rgba(255, 206, 148, 0.1));
+      content: "";
+    }
+
+    @media (max-width: 1080px) {
+      .intro-modal__body {
+        grid-template-columns: 1fr;
       }
-      68% {
-        transform: translateY(10px) scale(calc(1.012 * var(--intro-zoom, 2.8))) rotate(0.6deg);
-        opacity: 1;
-      }
-      86% {
-        transform: translateY(-4px) scale(calc(0.998 * var(--intro-zoom, 2.8))) rotate(-0.2deg);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(0) scale(var(--intro-zoom, 2.8)) rotate(0deg);
-        opacity: 1;
-      }
     }
 
-    @keyframes parchment-rise {
-      0% {
-        transform: translateY(0) scale(var(--intro-zoom, 2.8)) rotate(0deg);
-        opacity: 1;
+    @media (max-width: 720px) {
+      .intro-modal__stage {
+        padding: 14px;
       }
-      100% {
-        transform: translateY(-96px) scale(calc(0.97 * var(--intro-zoom, 2.8))) rotate(-0.8deg);
-        opacity: 0;
+
+      .intro-modal__panel {
+        width: 100%;
+        height: 94vh;
+        height: 94dvh;
+      }
+
+      .intro-modal__shell {
+        padding: 18px;
+      }
+
+      .intro-modal__skills {
+        grid-template-columns: 1fr;
+      }
+
+      .intro-modal__edu-head,
+      .intro-modal__focus-head,
+      .intro-modal__experience-head,
+      .intro-modal__subentry-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
       }
     }
   </style>
@@ -830,41 +1108,382 @@
   <div id="introModal" class="intro-modal" hidden aria-hidden="true">
     <div class="intro-modal__shader" aria-hidden="true"></div>
     <div class="intro-modal__stage">
-      <div class="intro-modal__parchment" id="introParchment">
-        <div class="intro-modal__toolbar">
-          <button
-            type="button"
-            class="intro-modal__toolbar-btn intro-modal__toolbar-btn--close"
-            id="introCloseBtn"
-            aria-label="Close introduction"
-          >
-            <img
-              src="outputs/assets/images/whole/buttons/buttons_whole/close_button.png"
-              alt=""
-              draggable="false"
-            >
-          </button>
-          <button
-            type="button"
-            class="intro-modal__toolbar-btn intro-modal__toolbar-btn--lang"
-            id="introLangBtn"
-            aria-label="Switch to English version"
-          >
-            <img
-              id="introLangBtnImg"
-              src="outputs/assets/images/whole/buttons/buttons_whole/english version_button.png"
-              alt="English Version"
-              draggable="false"
-            >
-          </button>
+      <section class="intro-modal__panel" role="dialog" aria-modal="true" aria-label="Introduction">
+        <div class="intro-modal__shell">
+          <header class="intro-modal__topbar">
+            <p class="intro-modal__eyebrow">Profile</p>
+            <div class="intro-modal__topbar-actions">
+              <button type="button" class="intro-modal__lang-btn" id="introLangBtn" aria-label="Switch to English version">English Version</button>
+              <button type="button" class="pt-close intro-modal__close" id="introCloseBtn" aria-label="Close introduction">×</button>
+            </div>
+          </header>
+
+          <div class="intro-modal__scroll">
+            <div class="intro-modal__body" data-intro-lang="zh">
+              <aside class="intro-modal__sidebar">
+                <div class="intro-modal__hero">
+                  <h2>黄诗涵 <span>Esther Huang</span></h2>
+                  <p class="intro-modal__role">Game / UX Designer</p>
+                  <p class="intro-modal__subtitle">游戏交互设计师 / UX 设计师 / 独立创作者</p>
+                  <p class="intro-modal__summary">6 年游戏交互 / UX 设计经验，覆盖游戏系统、社区工具、海外本地化、0-1 产品及 AI 项目。擅长流程梳理、交互方案设计、设计规范建立及跨团队协作。</p>
+                </div>
+
+                <section class="intro-modal__section intro-modal__section--boxed">
+                  <h3 class="intro-modal__section-title">核心能力 <span>Core Skills</span></h3>
+                  <ul class="intro-modal__skills">
+                    <li>游戏交互设计与系统设计</li>
+                    <li>用户体验与界面设计</li>
+                    <li>社区 / 工具产品设计</li>
+                    <li>海外本地化与全球化设计</li>
+                    <li>0-1 产品落地</li>
+                    <li>设计规范搭建与用户研究</li>
+                    <li>AI 产品协作与内容创作</li>
+                  </ul>
+                </section>
+
+                <section class="intro-modal__section intro-modal__section--boxed">
+                  <h3 class="intro-modal__section-title">教育背景 <span>Education</span></h3>
+                  <div class="intro-modal__edu">
+                    <article class="intro-modal__edu-item">
+                      <div class="intro-modal__edu-head">
+                        <strong>香港理工大学<br>The Hong Kong Polytechnic University</strong>
+                        <em>2018.09 – 2019.10</em>
+                      </div>
+                      <p>交互设计 · 设计学硕士</p>
+                      <p>校展交互装置：《unpredictable》<br>校展交互装置：《记忆邮局》</p>
+                    </article>
+
+                    <article class="intro-modal__edu-item">
+                      <div class="intro-modal__edu-head">
+                        <strong>MONASH UNIVERSITY</strong>
+                        <em>2014.09 – 2017.12</em>
+                      </div>
+                      <p>多媒体设计</p>
+                      <p>策展 2017 墨尔本和平展<br>2016 Parahan 地区难民医疗系统 App</p>
+                    </article>
+                  </div>
+                </section>
+
+                <section class="intro-modal__section">
+                  <h3 class="intro-modal__section-title">精选项目方向 <span>Selected Project Areas</span></h3>
+                  <div class="intro-modal__focus">
+                    <article class="intro-modal__focus-item">
+                      <div class="intro-modal__focus-head"><strong>游戏系统与交互设计</strong></div>
+                      <p>SLG、MMORPG、跑酷及游戏社区相关项目中的系统流程、界面交互、任务反馈、运营活动与工具设计。</p>
+                    </article>
+                    <article class="intro-modal__focus-item">
+                      <div class="intro-modal__focus-head"><strong>游戏社区与工具平台</strong></div>
+                      <p>网易大神社区工具、圈子体系、视频生产工具、云游戏模块及游戏分发关系链等 0-1 产品设计。</p>
+                    </article>
+                    <article class="intro-modal__focus-item">
+                      <div class="intro-modal__focus-head"><strong>海外本地化体验优化</strong></div>
+                      <p>多语言、多地区游戏交互适配与设计规范，支持海外服产品体验稳定运行。</p>
+                    </article>
+                    <article class="intro-modal__focus-item">
+                      <div class="intro-modal__focus-head"><strong>AI 产品与创作探索</strong></div>
+                      <p>AI + 相机项目产品设计、AI 工具链交互设计、游戏创作、自媒体内容与作品集表达中的应用。</p>
+                    </article>
+                  </div>
+                </section>
+              </aside>
+
+              <section class="intro-modal__main">
+                <section class="intro-modal__section">
+                  <h3 class="intro-modal__section-title">工作经历 <span>Work Experience</span></h3>
+                  <div class="intro-modal__experience">
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>自由交互设计师 / 独立创作者<br>Freelance</strong>
+                        <em>2024.11 – Now</em>
+                      </div>
+                      <div class="intro-modal__subentries">
+                        <section class="intro-modal__subentry">
+                          <div class="intro-modal__subentry-head">
+                            <strong>独立游戏开发</strong>
+                            <em>2026.03 – Now</em>
+                          </div>
+                          <ul>
+                            <li>个人叙事向独立游戏开发，负责概念设计、交互设计、美术风格探索与原型搭建。</li>
+                            <li>协助朋友推进 AI + 游戏平台及 AI 弹幕工具，参与产品方向梳理、功能设计与交互方案讨论。</li>
+                          </ul>
+                        </section>
+
+                        <section class="intro-modal__subentry">
+                          <div class="intro-modal__subentry-head">
+                            <strong>Shenicest 千人黑客松游戏赛道策划（北京）</strong>
+                            <em>2026.06 – 2026.08</em>
+                          </div>
+                          <ul>
+                            <li>参与千人规模黑客松中游戏赛道的策划与组织，协助梳理赛道定位、参赛机制、项目方向与合作资源。</li>
+                            <li>围绕 AI 游戏创作、游戏工具与互动体验方向，参与赛题设计、流程规划、资源对接及活动落地支持。</li>
+                            <li>协助整理游戏赛道对外合作材料，包括赞助沟通、奖品资源、导师支持与赛道介绍内容。</li>
+                          </ul>
+                        </section>
+
+                        <section class="intro-modal__subentry">
+                          <div class="intro-modal__subentry-head">
+                            <strong>创业经历</strong>
+                            <em>2025.02 – 2026.04</em>
+                          </div>
+                          <p>创业泰国菜品牌《广州海珠泰餐馆 · 吃饭榜第三》。参与品牌定位、菜单设计、视觉物料、用户体验与日常运营。</p>
+                        </section>
+
+                        <section class="intro-modal__subentry">
+                          <div class="intro-modal__subentry-head">
+                            <strong>项目制合作</strong>
+                            <em>2024.11 – 2025.02</em>
+                          </div>
+                          <ul>
+                            <li>腾讯《怪物猎人 · 手游版》：规范整理。</li>
+                            <li>网易《指环王 · 手游版》：屏幕规范管理及日常需求设计。</li>
+                            <li>AI + 相机项目：担任产品经理，参与产品方向、功能规划与交互设计。</li>
+                            <li>AI + 交互自媒体：内容创作者，探索 AI 工具在设计、游戏创作与作品集中的应用。</li>
+                          </ul>
+                        </section>
+                      </div>
+                    </article>
+
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>网易游戏 - 高级交互策划<br>NETEASE</strong>
+                        <em>2024.02 – 2024.08</em>
+                      </div>
+                      <ul>
+                        <li>游戏项目《归唐》交互策划与体验设计。</li>
+                        <li>梳理系统功能流程，输出交互方案并推动迭代落地。</li>
+                      </ul>
+                    </article>
+
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>阿里游戏 - 三国志海外交互组长 / 高级交互设计师<br>ALIBABA Games</strong>
+                        <em>2021.09 – 2023.11</em>
+                      </div>
+                      <ul>
+                        <li>负责《三国志 · 战略版》海外服 UX 团队参与跨团队协作，任职期间 UX 团队 0 事故、0 差评。</li>
+                        <li>负责 6 语言地区多语言交互设计与设计规范，保障海外服体验稳定运行。</li>
+                        <li>负责海外服全语言「龙争虎斗」交互设计，及跨服组队 1–3 期体验优化。</li>
+                        <li>主导三周年赛事交互开发，从模块功能梳理到细致体验调优，上线后全平台近百万同时观看。</li>
+                        <li>负责常规 13–15 赛季交互设计、战报调研、用户调研与交互控件规范整理。</li>
+                      </ul>
+                    </article>
+
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>网易游戏 - 游戏社区交互设计师<br>NETEASE</strong>
+                        <em>2020.07 – 2021.09</em>
+                      </div>
+                      <ul>
+                        <li>网易大神主交互设计师，网易运营中心 20 年度十佳设计师，暑假实习生面试官及导师。</li>
+                        <li>负责多款热门游戏工具与运营活动设计，包括《永劫无间》游戏百科、《哈利波特》圈子等。</li>
+                        <li>负责光遇交友工具设计，DAU 与转化率提升 8 成；光遇圈子日 DAU 提升 6 成。</li>
+                        <li>主导大神走查 1.0–3.0，协调上下游部门推动产品设计走查迭代。</li>
+                        <li>参与游戏分发关系链、大神云游戏、视频生产工具、圈子签到体系等 0-1 项目设计。</li>
+                        <li>与营销部门合作推动产品情感化设计，负责用研与竞品报告输出。</li>
+                        <li>已授权设计专利 3 项，涉及 SLG 路径调整、条件化换装与交易、聊天消息处理等方向。</li>
+                      </ul>
+                    </article>
+
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>字节跳动 - 游戏交互设计师<br>BYTEDANCE</strong>
+                        <em>2020.01 – 2020.06</em>
+                      </div>
+                      <ul>
+                        <li>负责 SLG《Land of Empires》核心城建内部系统交互设计。</li>
+                        <li>负责建筑信息与升级界面、建筑天赋配置系统、兵营系统、任务与反馈系统。</li>
+                        <li>参与物品收取规则及动效规范制定、邮箱系统、登录主界面、每日签到与物品领取系统设计。</li>
+                        <li>独立负责跑酷项目《天际跃动》第一版全部交互设计。</li>
+                      </ul>
+                    </article>
+                  </div>
+                </section>
+              </section>
+            </div>
+
+            <div class="intro-modal__body" data-intro-lang="en" hidden>
+              <aside class="intro-modal__sidebar">
+                <div class="intro-modal__hero">
+                  <h2>Esther Huang</h2>
+                  <p class="intro-modal__role">Game / UX Designer</p>
+                  <p class="intro-modal__subtitle">Game Interaction Designer / UX Designer / Independent Creator</p>
+                  <p class="intro-modal__summary">6 years of experience in game interaction and UX design, covering game systems, community tools, overseas localization, 0-1 product development, and AI-related projects. Skilled in workflow analysis, interaction design, design guideline creation, user research, and cross-team collaboration.</p>
+                </div>
+
+                <section class="intro-modal__section intro-modal__section--boxed">
+                  <h3 class="intro-modal__section-title">Core Skills <span>Core Skills</span></h3>
+                  <ul class="intro-modal__skills">
+                    <li>Game interaction and system design</li>
+                    <li>User experience and interface design</li>
+                    <li>Community and tool product design</li>
+                    <li>Overseas localization and global design</li>
+                    <li>0-1 product implementation</li>
+                    <li>Design guideline creation and user research</li>
+                    <li>AI product collaboration and content creation</li>
+                  </ul>
+                </section>
+
+                <section class="intro-modal__section intro-modal__section--boxed">
+                  <h3 class="intro-modal__section-title">Education <span>Education</span></h3>
+                  <div class="intro-modal__edu">
+                    <article class="intro-modal__edu-item">
+                      <div class="intro-modal__edu-head">
+                        <strong>The Hong Kong Polytechnic University</strong>
+                        <em>2018.09 – 2019.10</em>
+                      </div>
+                      <p>Master of Interaction Design</p>
+                      <p>Exhibited interactive installations: Unpredictable and Memory Post Office</p>
+                    </article>
+
+                    <article class="intro-modal__edu-item">
+                      <div class="intro-modal__edu-head">
+                        <strong>Monash University</strong>
+                        <em>2014.09 – 2017.12</em>
+                      </div>
+                      <p>Multimedia Design</p>
+                      <p>Curated 2017 Melbourne Peace Exhibition<br>2016 Parahan Regional Refugee Healthcare App</p>
+                    </article>
+                  </div>
+                </section>
+
+                <section class="intro-modal__section">
+                  <h3 class="intro-modal__section-title">Selected Project Areas <span>Selected Project Areas</span></h3>
+                  <div class="intro-modal__focus">
+                    <article class="intro-modal__focus-item">
+                      <div class="intro-modal__focus-head"><strong>Game Systems &amp; Interaction Design</strong></div>
+                      <p>System flows, interface interaction, task feedback, event design, and tool design for SLG, MMORPG, platformer, and game community projects.</p>
+                    </article>
+                    <article class="intro-modal__focus-item">
+                      <div class="intro-modal__focus-head"><strong>Game Community &amp; Tool Platforms</strong></div>
+                      <p>NetEase community tools, circles, video production tools, cloud game modules, and 0-1 distribution chain products.</p>
+                    </article>
+                    <article class="intro-modal__focus-item">
+                      <div class="intro-modal__focus-head"><strong>Overseas Localization &amp; Experience Optimization</strong></div>
+                      <p>Multi-language and multi-region interaction adaptation, design guidelines, and overseas server experience optimization.</p>
+                    </article>
+                    <article class="intro-modal__focus-item">
+                      <div class="intro-modal__focus-head"><strong>AI Product &amp; Creative Exploration</strong></div>
+                      <p>AI camera product design, AI tool interaction, game creation, and AI-assisted portfolio/content production.</p>
+                    </article>
+                  </div>
+                </section>
+              </aside>
+
+              <section class="intro-modal__main">
+                <section class="intro-modal__section">
+                  <h3 class="intro-modal__section-title">Work Experience <span>Work Experience</span></h3>
+                  <div class="intro-modal__experience">
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>Freelance / Independent Creator<br>Freelance</strong>
+                        <em>2024.11 – Now</em>
+                      </div>
+                      <div class="intro-modal__subentries">
+                        <section class="intro-modal__subentry">
+                          <div class="intro-modal__subentry-head">
+                            <strong>Independent Game Development</strong>
+                            <em>2026.03 – Now</em>
+                          </div>
+                          <ul>
+                            <li>Developed personal narrative-driven indie games, responsible for concept design, interaction design, visual exploration, and prototyping.</li>
+                            <li>Supported AI + game platform and AI live-comment tool projects, contributing to product direction, feature planning, and interaction discussions.</li>
+                          </ul>
+                        </section>
+
+                        <section class="intro-modal__subentry">
+                          <div class="intro-modal__subentry-head">
+                            <strong>Shenicest 1,000-Person Hackathon – Game Track Planner</strong>
+                            <em>Beijing / 2026.06 – 2026.08</em>
+                          </div>
+                          <ul>
+                            <li>Planned and supported the game track for a 1,000-person hackathon, covering track positioning, participant flow, project direction, and partner resources.</li>
+                            <li>Contributed to challenge design, event flow, mentor/resource coordination, and execution support around AI game creation and interactive tools.</li>
+                            <li>Prepared game track partnership materials, including sponsorship communication, prize resources, mentor support, and track introduction content.</li>
+                          </ul>
+                        </section>
+
+                        <section class="intro-modal__subentry">
+                          <div class="intro-modal__subentry-head">
+                            <strong>Entrepreneurship</strong>
+                            <em>2025.02 – 2026.04</em>
+                          </div>
+                          <p>Founded Thai cuisine brand “Guangzhou Haizhu Thai Restaurant – Ranked Third.” Involved in brand positioning, menu design, visual assets, user experience, and daily operations.</p>
+                        </section>
+
+                        <section class="intro-modal__subentry">
+                          <div class="intro-modal__subentry-head">
+                            <strong>Project-Based Collaboration</strong>
+                            <em>2024.11 – 2025.02</em>
+                          </div>
+                          <ul>
+                            <li>NetEase Lord of the Rings Mobile: Managed screen specifications and routine design requests.</li>
+                            <li>AI Camera Project: Product Manager, contributing to product direction, feature planning, and interaction design.</li>
+                            <li>AI + Interactive Media: Content creator exploring AI tools for interaction design, game creation, and portfolio work.</li>
+                          </ul>
+                        </section>
+                      </div>
+                    </article>
+
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>NetEase Games – Senior Interaction Designer<br>NetEase</strong>
+                        <em>2024.02 – 2024.08</em>
+                      </div>
+                      <ul>
+                        <li>Worked on interaction design and experience planning for the 3A game project Blood Message.</li>
+                        <li>Organized system workflows, delivered interaction solutions, and drove implementation and iteration.</li>
+                      </ul>
+                    </article>
+
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>Alibaba Games – Overseas UX Lead / Senior Interaction Designer<br>Alibaba Games</strong>
+                        <em>2021.09 – 2023.11</em>
+                      </div>
+                      <ul>
+                        <li>Led the UX team for the overseas version of Three Kingdoms: Strategic Edition, collaborating across teams with 0 major UX incidents during tenure.</li>
+                        <li>Designed multi-language interaction guidelines for six language regions, ensuring stable experience across overseas servers.</li>
+                        <li>Delivered cross-server interaction design for the “Dragon Battle” feature and optimized multiplayer experience across 1–3 rounds of iteration.</li>
+                        <li>Led interaction design for the third-anniversary event, from feature planning to detailed experience optimization, reaching nearly 1 million concurrent viewers after launch.</li>
+                        <li>Responsible for regular season 13–15 interaction design, battle report research, user research, and interaction control standards.</li>
+                      </ul>
+                    </article>
+
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>NetEase Games – Game Community Interaction Designer<br>NetEase</strong>
+                        <em>2020.07 – 2021.09</em>
+                      </div>
+                      <ul>
+                        <li>Lead interaction designer for NetEase Community; awarded 20-Year Top Designer and served as summer intern mentor/interviewer.</li>
+                        <li>Designed multiple popular game tools and events, including Naraka: Bladepoint encyclopedia and Harry Potter circles.</li>
+                        <li>Designed Sky: Children of the Light social tools, increasing DAU and conversion by 80%; circle DAU increased by 60%.</li>
+                        <li>Led workflow review 1.0–3.0, coordinating with departments to drive product design iteration.</li>
+                        <li>Participated in 0-1 projects including distribution chains, cloud games, video tools, and circle check-in systems.</li>
+                        <li>Collaborated with marketing teams on emotional design; responsible for user research and competitor analysis.</li>
+                        <li>Granted 3 design patents related to SLG path adjustment, conditional outfit/transaction mechanisms, and chat message processing.</li>
+                      </ul>
+                    </article>
+
+                    <article class="intro-modal__experience-item">
+                      <div class="intro-modal__experience-head">
+                        <strong>ByteDance – Game Interaction Designer<br>ByteDance</strong>
+                        <em>2020.01 – 2020.06</em>
+                      </div>
+                      <ul>
+                        <li>Designed core building interaction systems for SLG Land of Empires.</li>
+                        <li>Responsible for building information, upgrade interfaces, talent systems, barracks, task, and feedback systems.</li>
+                        <li>Contributed to item collection rules, animation standards, mailbox system, login interface, daily check-in, and item retrieval systems.</li>
+                        <li>Independently designed the first version of interaction design for platformer game Skyward Dash.</li>
+                      </ul>
+                    </article>
+                  </div>
+                </section>
+              </section>
+            </div>
+          </div>
         </div>
-        <img
-          id="introParchmentImg"
-          src="outputs/assets/images/whole/profile/chinese_panel.png"
-          alt="Personal Introduction"
-          draggable="false"
-        >
-      </div>
+      </section>
     </div>
   </div>
 
@@ -1367,31 +1986,17 @@
     /* ═══════════════════════════════════════════
        Personal Introduction 羊皮纸弹窗（全局层）
        ═══════════════════════════════════════════ */
-    const INTRO_PANEL = {
-      zh: "outputs/assets/images/whole/profile/chinese_panel.png",
-      en: "outputs/assets/images/whole/profile/english_panel.png",
-    };
-    const INTRO_LANG_BTN = {
-      zh: "outputs/assets/images/whole/buttons/buttons_whole/english version_button.png",
-      en: "outputs/assets/images/whole/buttons/buttons_whole/chinese_button.png",
-    };
-    const INTRO_LANG_LABEL = {
-      zh: "Switch to English version",
-      en: "Switch to Chinese version",
-    };
-
     const introModal = document.getElementById("introModal");
-    const introParchment = document.getElementById("introParchment");
-    const introParchmentImg = document.getElementById("introParchmentImg");
+    const introShader = introModal.querySelector(".intro-modal__shader");
     const introOpenBtn = document.getElementById("introOpenBtn");
     const introCloseBtn = document.getElementById("introCloseBtn");
     const introLangBtn = document.getElementById("introLangBtn");
-    const introLangBtnImg = document.getElementById("introLangBtnImg");
+    const introBodies = Array.from(introModal.querySelectorAll("[data-intro-lang]"));
 
     let introModalOpen = false;
     let introLanguage = "zh";
     let savedScrollY = 0;
-    const INTRO_ANIM = { open: 880, close: 460 };
+    const INTRO_ANIM = { open: 380, close: 280 };
 
     function lockBodyScroll() {
       savedScrollY = window.scrollY;
@@ -1410,21 +2015,22 @@
     }
 
     function setIntroLanguage(language) {
-      introLanguage = language;
-      introParchment.classList.toggle("is-english", language === "en");
-      introParchmentImg.src = INTRO_PANEL[language];
-      introLangBtnImg.src = INTRO_LANG_BTN[language];
-      introLangBtnImg.alt = language === "zh" ? "English Version" : "Chinese Version";
-      introLangBtn.setAttribute("aria-label", INTRO_LANG_LABEL[language]);
+      introLanguage = language === "en" ? "en" : "zh";
+      introBodies.forEach((body) => {
+        body.hidden = body.getAttribute("data-intro-lang") !== introLanguage;
+      });
+      introLangBtn.textContent = introLanguage === "zh" ? "English Version" : "中文版本";
+      introLangBtn.setAttribute(
+        "aria-label",
+        introLanguage === "zh" ? "Switch to English version" : "切换到中文版本"
+      );
     }
 
     function openIntroModal() {
       if (introModalOpen) return;
 
       introModalOpen = true;
-      setIntroLanguage("zh");
-      introParchmentImg.src = `${INTRO_PANEL.zh}?t=${Date.now()}`;
-
+      setIntroLanguage(introLanguage);
       introModal.hidden = false;
       introModal.setAttribute("aria-hidden", "false");
       introModal.classList.remove("is-closing");
@@ -1461,7 +2067,7 @@
     });
 
     introCloseBtn.addEventListener("click", closeIntroModal);
-
+    introShader.addEventListener("click", closeIntroModal);
     introLangBtn.addEventListener("click", () => {
       setIntroLanguage(introLanguage === "zh" ? "en" : "zh");
     });
