@@ -2178,6 +2178,10 @@
       return Math.min(Math.max(value, min), max);
     }
 
+    function isPagePlaybackSuspended() {
+      return isPortfolioModalOpen || document.body.classList.contains("pt-modal-lock");
+    }
+
     function getActivePageIndex() {
       const viewportMid = window.scrollY + window.innerHeight * 0.5;
       for (let i = 0; i < pageSections.length; i++) {
@@ -2228,6 +2232,8 @@
         done: pagePlayback[PAGE2_INDEX].done,
         lastPageIndex,
         lockedScrollY,
+        currentFrame,
+        displayedFrame,
       };
     }
 
@@ -2243,13 +2249,18 @@
       window.scrollTo(0, restoreState.lockedScrollY ?? lockedScrollY);
       pagePlayback[PAGE2_INDEX].frame = frame;
       pagePlayback[PAGE2_INDEX].done = restoreState.done;
-      lastPageIndex = restoreState.lastPageIndex;
+      lastPageIndex = restoreState.activePageIndex === PAGE2_INDEX
+        ? PAGE2_INDEX
+        : restoreState.lastPageIndex;
       lastScrollY = restoreState.lockedScrollY ?? lockedScrollY;
 
       if (restoreState.activePageIndex === PAGE2_INDEX) {
         currentFrame = frame;
         displayedFrame = -1;
         renderFrame(frame);
+      } else {
+        currentFrame = restoreState.currentFrame ?? currentFrame;
+        displayedFrame = restoreState.displayedFrame ?? displayedFrame;
       }
 
       preservedPage2PlaybackState = null;
@@ -2893,18 +2904,20 @@
     }
 
     function updatePlayback() {
-      const pageIndex = getActivePageIndex();
+      if (isPagePlaybackSuspended()) {
+        const suspendedPageIndex = preservedPage2PlaybackState?.activePageIndex ?? lastPageIndex;
 
-      if (isPortfolioModalOpen) {
-        if (isVideoPage(pageIndex)) {
-          const pb = pagePlayback[pageIndex];
-          const node = NODES[pageIndex];
+        if (isVideoPage(suspendedPageIndex)) {
+          const pb = pagePlayback[suspendedPageIndex];
+          const node = NODES[suspendedPageIndex];
           currentFrame = pb.done ? node.endFrame : pb.frame;
         } else {
           currentFrame = CONFIG.totalFrames;
         }
         return;
       }
+
+      const pageIndex = getActivePageIndex();
 
       if (pageIndex !== lastPageIndex) {
         if (lastPageIndex === PAGE4_INDEX && pageIndex !== PAGE4_INDEX) {
@@ -2947,6 +2960,10 @@
     }
 
     function onScroll() {
+      if (isPagePlaybackSuspended()) {
+        return;
+      }
+
       const currentScrollY = window.scrollY;
       scrollDirection = currentScrollY > lastScrollY ? 1 : currentScrollY < lastScrollY ? -1 : scrollDirection;
       lastScrollY = currentScrollY;
