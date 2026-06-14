@@ -12,6 +12,10 @@
     return;
   }
 
+  // Embedded mode keeps the list stable inside page2 while preserving modal behavior.
+  var embedHost = root.closest(".portfolio-embed") || root.closest('[data-pt-embed="overlay"]');
+  var isEmbedMode = Boolean(embedHost) || root.getAttribute("data-pt-embed") === "overlay";
+
   var closeControls = modal.querySelectorAll("[data-pt-close]");
   var projectButtons = document.querySelectorAll("[data-pt-project]");
   var nodeItems = document.querySelectorAll(".pt-zone-selected .pt-node");
@@ -1020,6 +1024,12 @@
     var trackWidth = track.scrollWidth;
     var leftOffset = parseFloat(window.getComputedStyle(track).left) || 0;
     maxTranslate = Math.max(0, trackWidth - stickyWidth + leftOffset + 80);
+
+    if (isEmbedMode) {
+      applyEmbedTimelineState();
+      return;
+    }
+
     updateTimeline();
   }
 
@@ -1036,6 +1046,12 @@
 
   function updateTimeline() {
     rafId = null;
+
+    if (isEmbedMode) {
+      applyEmbedTimelineState();
+      return;
+    }
+
     var progress = getProgress();
     var x = -maxTranslate * progress;
     var activeIndex = Math.round(progress * (nodeItems.length - 1));
@@ -1048,6 +1064,11 @@
     nodeItems.forEach(function (node, index) {
       node.classList.toggle("is-active", index === activeIndex);
     });
+  }
+
+  function applyEmbedTimelineState() {
+    track.style.transform = "translate3d(0, 0, 0)";
+    setActiveNode(0);
   }
 
   function requestTick() {
@@ -2812,7 +2833,9 @@
   modalIntro.addEventListener("wheel", highlightScrollbar, { passive: true });
   modalIntro.addEventListener("pointerdown", highlightScrollbar);
 
-  window.addEventListener("scroll", requestTick, { passive: true });
+  if (!isEmbedMode) {
+    window.addEventListener("scroll", requestTick, { passive: true });
+  }
   window.addEventListener("resize", function () {
     measure();
     updateScrollUi();

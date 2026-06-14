@@ -118,8 +118,7 @@
     #page-2,
     #page-3,
     #page-4,
-    #page-5,
-    #page-6 {
+    #page-5 {
       width: 100vw;
       height: 100vh;
       height: 100dvh;
@@ -131,8 +130,7 @@
     #page-2,
     #page-3,
     #page-4,
-    #page-5,
-    #page-6 {
+    #page-5 {
       scroll-snap-align: start;
     }
 
@@ -141,85 +139,7 @@
     }
 
     #page-5 {
-      height: 260vh;
-      height: 260dvh;
-      overflow: hidden;
-      background: #FEFDFD;
-      scroll-snap-stop: normal;
-    }
-
-    #page-6 {
       background: #ff0000;
-    }
-
-    .dove-tunnel {
-      position: absolute;
-      inset: 0 auto auto 0;
-      z-index: 0;
-      display: block;
-      width: 100%;
-      height: 100vh;
-      height: 100dvh;
-      background: #FEFDFD;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .dove-css-tunnel {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 2;
-      overflow: hidden;
-      width: 100%;
-      height: 100vh;
-      height: 100dvh;
-      background: #FEFDFD;
-      opacity: 0;
-      pointer-events: none;
-      perspective: 900px;
-      isolation: isolate;
-    }
-
-    .dove-css-ring {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: min(126vw, 1360px);
-      aspect-ratio: 19590 / 13834;
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(var(--ring-scale, 1));
-      transform-origin: center center;
-      will-change: transform, opacity;
-      -webkit-mask-image: radial-gradient(
-        circle at 50% 50%,
-        transparent 0 var(--ring-inner, 38%),
-        #000 var(--ring-inner, 38%) var(--ring-outer, 76%),
-        transparent var(--ring-outer, 76%) 100%
-      );
-      mask-image: radial-gradient(
-        circle at 50% 50%,
-        transparent 0 var(--ring-inner, 38%),
-        #000 var(--ring-inner, 38%) var(--ring-outer, 76%),
-        transparent var(--ring-outer, 76%) 100%
-      );
-      -webkit-mask-repeat: no-repeat;
-      mask-repeat: no-repeat;
-      -webkit-mask-size: 100% 100%;
-      mask-size: 100% 100%;
-    }
-
-    .dove-css-ring img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    #page-5 .page__content {
-      z-index: 3;
     }
 
     /* 视频页强制停住，避免滚过导致第三段 10–15s 动画未播放 */
@@ -628,6 +548,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="portfolio-module.css">
 </head>
 <body>
   <div class="cursor cursor-default" id="cursor" aria-hidden="true"></div>
@@ -661,9 +582,228 @@
     </section>
     <section class="page" id="page-2">
       <div class="page__content" id="page2Content">
-        <h1 class="page__title">Portfolio</h1>
-        <p class="page__subtitle">Selected works across film, motion, and design</p>
-        <button class="page__btn" type="button">View Projects</button>
+        <div class="portfolio-embed">
+          <div class="pt-page" data-pt-demo>
+            <section class="pt-scroll-scene" aria-labelledby="pt-timeline-title">
+              <div class="pt-sticky pt-dual-board">
+                <div class="pt-frame" aria-hidden="true"></div>
+
+                <header class="pt-scene-header">
+                  <h2 id="pt-timeline-title">UX Portfolio｜UX作品集</h2>
+                </header>
+
+                <section class="pt-zone-featured" aria-labelledby="pt-featured-title">
+                  <header class="pt-zone-head">
+                    <h3 id="pt-featured-title" class="pt-zone-label">
+                      <span class="pt-zone-label-icon" aria-hidden="true">
+                        <svg class="pt-zone-label-icon-svg" viewBox="0 0 24 24" focusable="false">
+                          <path d="M12 3 20.5 12 12 21 3.5 12Z" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                      <span class="pt-zone-label-text">
+                        <span class="pt-zone-label-cn">核心项目</span>
+                        <span class="pt-zone-label-sep" aria-hidden="true">｜</span>
+                        <span class="pt-zone-label-en">Featured Case Studies</span>
+                      </span>
+                    </h3>
+                  </header>
+
+                  <div class="pt-featured-row">
+                    <article class="pt-node pt-node--featured is-active" style="--pt-i: 0">
+                      <button class="pt-node-button" type="button" data-pt-project="4" aria-label="打开 2019 三国志战略版项目详情">
+                        <span class="pt-year">2021.09–2023.11</span>
+                        <span class="pt-dot" aria-hidden="true"><img src="./assets/p2/leaf.png" alt=""></span>
+                        <img class="pt-thumb" src="./assets/p2/p2_002.png" alt="" aria-hidden="true">
+                        <span class="pt-title">三国志 · 战略版<br><span>Three Kingdoms Strategy</span></span>
+                        <span class="pt-desc">策略战争游戏项目。<br>提升策略操作体验。</span>
+                        <img class="pt-rule" src="./assets/p2/pattern_BOT.png" alt="" aria-hidden="true">
+                      </button>
+                    </article>
+
+                    <article class="pt-node pt-node--featured is-active" style="--pt-i: 1">
+                      <button class="pt-node-button" type="button" data-pt-project="5" aria-label="打开 2020 网易大神项目详情">
+                        <span class="pt-year">2020.07–2021.09</span>
+                        <span class="pt-dot" aria-hidden="true"><img src="./assets/p2/leaf.png" alt=""></span>
+                        <img class="pt-thumb" src="./assets/p2/p2_003.png" alt="" aria-hidden="true">
+                        <span class="pt-title">网易大神<br><span>NetEase Godlike</span></span>
+                        <span class="pt-desc">游戏社区产品设计。<br>连接玩家、内容与活动。</span>
+                        <img class="pt-rule" src="./assets/p2/pattern_BOT.png" alt="" aria-hidden="true">
+                      </button>
+                    </article>
+
+                    <article class="pt-node pt-node--featured is-active" style="--pt-i: 2">
+                      <button class="pt-node-button" type="button" data-pt-project="6" aria-label="打开 2022 LANDS OF EMPIRES 项目详情">
+                        <span class="pt-year">2020.01–2020.06</span>
+                        <span class="pt-dot" aria-hidden="true"><img src="./assets/p2/leaf.png" alt=""></span>
+                        <img class="pt-thumb" src="./assets/p2/p2_004.png" alt="" aria-hidden="true">
+                        <span class="pt-title">帝国之地<br><span>Lands of Empires</span></span>
+                        <span class="pt-desc">幻想战争 SLG 项目。<br>城建与系统交互设计。</span>
+                        <img class="pt-rule" src="./assets/p2/pattern_BOT.png" alt="" aria-hidden="true">
+                      </button>
+                    </article>
+
+                    <article class="pt-node pt-node--featured is-active" style="--pt-i: 3">
+                      <button class="pt-node-button" type="button" data-pt-project="8" aria-label="打开 AI交互理念 项目详情">
+                        <span class="pt-year">2026</span>
+                        <span class="pt-dot" aria-hidden="true"><img src="./assets/p2/leaf.png" alt=""></span>
+                        <img class="pt-thumb" src="./assets/p2/p2_009_thumb.jpg" alt="" aria-hidden="true">
+                        <span class="pt-title">AI交互理念<br><span>New UX concept</span></span>
+                        <span class="pt-desc">对 AI 交互新范式理解。<br>涌动式交互。</span>
+                        <img class="pt-rule" src="./assets/p2/pattern_BOT.png" alt="" aria-hidden="true">
+                      </button>
+                    </article>
+                  </div>
+
+                  <div class="pt-zone-divider" aria-hidden="true"></div>
+                </section>
+
+                <section class="pt-zone-selected" aria-labelledby="pt-selected-title">
+                  <header class="pt-zone-head">
+                    <h3 id="pt-selected-title" class="pt-zone-label pt-zone-label--selected">
+                      <span class="pt-zone-label-icon" aria-hidden="true">
+                        <svg class="pt-zone-label-icon-svg" viewBox="0 0 24 24" focusable="false">
+                          <circle cx="5.5" cy="12" r="2" fill="currentColor"/>
+                          <circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.72"/>
+                          <circle cx="18.5" cy="12" r="2" fill="currentColor" opacity="0.48"/>
+                          <path d="M7.5 12h3M14 12h3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                        </svg>
+                      </span>
+                      <span class="pt-zone-label-text">
+                        <span class="pt-zone-label-cn">其他精选项目</span>
+                        <span class="pt-zone-label-sep" aria-hidden="true">｜</span>
+                        <span class="pt-zone-label-en">Selected Works</span>
+                      </span>
+                    </h3>
+                  </header>
+
+                  <div class="pt-viewport pt-viewport--selected">
+                    <div class="pt-track pt-track--selected" data-pt-track>
+                      <article class="pt-node pt-node--selected is-active" style="--pt-i: 0">
+                        <button class="pt-node-button" type="button" data-pt-project="0" aria-label="打开 2026 Indie game 项目详情">
+                          <span class="pt-year">2026</span>
+                          <span class="pt-dot" aria-hidden="true"><img src="./assets/p2/leaf.png" alt=""></span>
+                          <img class="pt-thumb" src="./assets/p2/p2_008.png" alt="" aria-hidden="true">
+                          <span class="pt-title">独立游戏<br><span>Indie Game</span></span>
+                          <span class="pt-desc">原创叙事游戏探索。<br>轻交互与情绪体验。</span>
+                          <img class="pt-rule" src="./assets/p2/pattern_BOT.png" alt="" aria-hidden="true">
+                        </button>
+                      </article>
+
+                      <img class="pt-connector" src="./assets/p2/timeline.png" alt="" aria-hidden="true">
+
+                      <article class="pt-node pt-node--selected" style="--pt-i: 1">
+                        <button class="pt-node-button" type="button" data-pt-project="1" aria-label="打开 2025 外包合作 项目详情">
+                          <span class="pt-year">2025</span>
+                          <span class="pt-dot" aria-hidden="true"><img src="./assets/p2/leaf.png" alt=""></span>
+                          <img class="pt-thumb" src="./assets/p2/p2_006.png" alt="" aria-hidden="true">
+                          <span class="pt-title">外包合作<br><span>Outsourcing Projects</span></span>
+                          <span class="pt-desc">游戏 UI 外包项目。<br>统一视觉与交付规范。</span>
+                          <img class="pt-rule" src="./assets/p2/pattern_BOT.png" alt="" aria-hidden="true">
+                        </button>
+                      </article>
+
+                      <img class="pt-connector" src="./assets/p2/timeline.png" alt="" aria-hidden="true">
+
+                      <article class="pt-node pt-node--selected" style="--pt-i: 2">
+                        <button class="pt-node-button" type="button" data-pt-project="2" aria-label="打开 2025 reva 项目详情">
+                          <span class="pt-year">2025</span>
+                          <span class="pt-dot" aria-hidden="true"><img src="./assets/p2/leaf.png" alt=""></span>
+                          <img class="pt-thumb" src="./assets/p2/p2_007.png" alt="" aria-hidden="true">
+                          <span class="pt-title">reva<br><span>REVA AI Camera</span></span>
+                          <span class="pt-desc">梦幻 AI 相机项目。<br>复古滤镜与梦核影像。</span>
+                          <img class="pt-rule" src="./assets/p2/pattern_BOT.png" alt="" aria-hidden="true">
+                        </button>
+                      </article>
+
+                      <img class="pt-connector" src="./assets/p2/timeline.png" alt="" aria-hidden="true">
+
+                      <article class="pt-node pt-node--selected" style="--pt-i: 3">
+                        <button class="pt-node-button" type="button" data-pt-project="3" aria-label="打开 2024 Blood Message 项目详情">
+                          <span class="pt-year">2024.02–2024.08</span>
+                          <span class="pt-dot" aria-hidden="true"><img src="./assets/p2/leaf.png" alt=""></span>
+                          <img class="pt-thumb" src="./assets/p2/p2_001.png" alt="" aria-hidden="true">
+                          <span class="pt-title">归唐<br><span>Blood Message</span></span>
+                          <span class="pt-desc">中式叙事动作项目。<br>历史、武侠与冒险。</span>
+                          <img class="pt-rule" src="./assets/p2/pattern_BOT.png" alt="" aria-hidden="true">
+                        </button>
+                      </article>
+
+                      <img class="pt-connector" src="./assets/p2/timeline.png" alt="" aria-hidden="true">
+
+                      <article class="pt-node pt-node--selected" style="--pt-i: 4">
+                        <button class="pt-node-button" type="button" data-pt-project="7" aria-label="打开 2024 暗黑破坏神不朽项目详情">
+                          <span class="pt-year">2019</span>
+                          <span class="pt-dot" aria-hidden="true"><img src="./assets/p2/leaf.png" alt=""></span>
+                          <img class="pt-thumb" src="./assets/p2/p2_005.png" alt="" aria-hidden="true">
+                          <span class="pt-title">暗黑破坏神 · 不朽<br><span>Diablo Immortal</span></span>
+                          <span class="pt-desc">暗黑幻想项目展示。<br>移动端系统适配设计。</span>
+                          <img class="pt-rule" src="./assets/p2/pattern_BOT.png" alt="" aria-hidden="true">
+                        </button>
+                      </article>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-modal" data-pt-modal aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="pt-modal-title">
+        <div class="pt-modal-backdrop" data-pt-close></div>
+        <section class="pt-modal-panel">
+          <div class="pt-modal-shell">
+            <header class="pt-modal-topbar">
+              <div class="pt-modal-topbar-visual">
+                <nav class="pt-section-tabs" data-pt-section-tabs hidden aria-label="项目系统切换"></nav>
+              </div>
+              <div class="pt-modal-topbar-main">
+                <p class="pt-modal-year" data-pt-modal-year>2018</p>
+                <button class="pt-close" type="button" data-pt-close aria-label="关闭项目详情">×</button>
+              </div>
+            </header>
+
+            <div class="pt-modal-grid">
+              <div class="pt-modal-visual-wrap">
+                <div class="pt-modal-visual-stage">
+                  <div class="pt-modal-visual" data-pt-modal-visual aria-hidden="true"></div>
+                </div>
+              </div>
+              <div class="pt-modal-content">
+                <h2 id="pt-modal-title" data-pt-modal-title>项目标题</h2>
+                <p class="pt-modal-subtitle" data-pt-modal-subtitle></p>
+                <div class="pt-intro-scroll" data-pt-intro-scroll>
+                  <div class="pt-modal-intro" data-pt-modal-intro>项目简介占位文本。</div>
+                </div>
+
+                <div class="pt-page-dots" data-pt-page-dots hidden aria-label="项目内容分页"></div>
+
+                <div class="pt-detail-list">
+                  <div>
+                    <h3>Case Study</h3>
+                    <p data-pt-modal-case>从创意方向、视觉系统到最终落地的完整作品研究。</p>
+                  </div>
+                  <div>
+                    <h3>Role</h3>
+                    <p data-pt-modal-role>Art Direction / Visual Design / Frontend Prototype</p>
+                  </div>
+                  <div>
+                    <h3>Tools</h3>
+                    <p data-pt-modal-tools>Figma / Photoshop / Illustrator / HTML / CSS / JS</p>
+                  </div>
+                  <div>
+                    <h3>Outcome</h3>
+                    <p data-pt-modal-outcome>形成可复用的视觉资产与交互叙事模板。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="pt-visual-nav-rail" aria-hidden="true">
+            <button class="pt-visual-nav pt-visual-nav--prev" type="button" data-pt-visual-prev aria-label="上一页" hidden>‹</button>
+            <button class="pt-visual-nav pt-visual-nav--next" type="button" data-pt-visual-next aria-label="下一页" hidden>›</button>
+          </div>
+        </section>
       </div>
     </section>
     <section class="page" id="page-3">
@@ -677,18 +817,7 @@
       <div class="page__content" id="page4Content" aria-hidden="true"></div>
     </section>
     <section class="page page--static" id="page-5">
-      <canvas class="dove-tunnel" id="doveTunnelCanvas" aria-hidden="true"></canvas>
-      <div class="dove-css-tunnel" id="doveTunnelFallback" aria-hidden="true">
-        <div class="dove-css-ring" data-dove-ring="0"><img alt="" draggable="false"></div>
-        <div class="dove-css-ring" data-dove-ring="1"><img alt="" draggable="false"></div>
-        <div class="dove-css-ring" data-dove-ring="2"><img alt="" draggable="false"></div>
-        <div class="dove-css-ring" data-dove-ring="3"><img alt="" draggable="false"></div>
-        <div class="dove-css-ring" data-dove-ring="4"><img alt="" draggable="false"></div>
-      </div>
       <div class="page__content" id="page5Content" aria-hidden="true"></div>
-    </section>
-    <section class="page page--static" id="page-6">
-      <div class="page__content" id="page6Content" aria-hidden="true"></div>
     </section>
   </main>
 
@@ -743,7 +872,7 @@
       fps: 30,
       framesPerPage: 150,   // 5s × 30fps
       videoPages: 3,
-      totalPages: 6,
+      totalPages: 5,
       totalFrames: 450,     // 15s × 30fps
       videoFile: "hero-video.mp4",
       framePath: (i) => `frames/frame_${String(i).padStart(4, "0")}.webp`,
@@ -765,7 +894,7 @@
        Page 1：帧 1–150    （0s → 5s）
        Page 2：帧 151–300  （5s → 10s）
        Page 3：帧 301–450  （10s → 15s）
-       Page 4–6：静态背景页（无视频）；Page 5 为白鸽无底洞，Page 6 为纯红测试页
+       Page 4–5：静态背景页（无视频）；Page 5 为纯红测试页
        ═══════════════════════════════════════════ */
     const NODES = [
       {
@@ -805,13 +934,6 @@
       {
         video: false,
         navLabel: "Page 5",
-        title: "",
-        subtitle: "",
-        cta: "",
-      },
-      {
-        video: false,
-        navLabel: "Page 6",
         title: "",
         subtitle: "",
         cta: "",
@@ -987,342 +1109,6 @@
           ensureFrame(i);
         }
       }
-    }
-
-    /* ═══════════════════════════════════════════
-       Page 5 白鸽无底洞（WebGL Perspective Tunnel）
-       ═══════════════════════════════════════════ */
-    const DOVE_TUNNEL = {
-      imagePath: "outputs/assets/images/page5/dove_group_web.jpg",
-      layers: [
-        { z: 0, scale: 1, ringInner: "41%", ringOuter: "66%" },
-        { z: -500, scale: 0.7, ringInner: "31%", ringOuter: "50%" },
-        { z: -1000, scale: 0.49, ringInner: "22%", ringOuter: "36%" },
-        { z: -1500, scale: 0.34, ringInner: "15%", ringOuter: "27%" },
-        { z: -2000, scale: 0.24, ringInner: "8%", ringOuter: "19%" },
-      ],
-      cameraStartZ: 1050,
-      cameraEndZ: -900,
-      fov: 45,
-      planeHeight: 1300,
-      smoothing: 0.075,
-      minDistance: 70,
-      maxDepthScale: 1,
-      maxTextureSize: 4096,
-    };
-
-    const doveTunnelCanvas = document.getElementById("doveTunnelCanvas");
-    const doveTunnelFallback = document.getElementById("doveTunnelFallback");
-    const doveCssRings = doveTunnelFallback
-      ? Array.from(doveTunnelFallback.querySelectorAll(".dove-css-ring"))
-      : [];
-    let doveGl = null;
-    let doveProgram = null;
-    let doveVertexBuffer = null;
-    let doveTexture = null;
-    let doveTextureAspect = 19590 / 13834;
-    let doveCameraZ = DOVE_TUNNEL.cameraStartZ;
-    let doveTargetCameraZ = DOVE_TUNNEL.cameraStartZ;
-    let doveTunnelReady = false;
-    let doveCssReady = false;
-    let doveUniforms = null;
-
-    function resizeDoveTunnel() {
-      if (!doveTunnelCanvas) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const width = Math.max(1, Math.floor(doveTunnelCanvas.clientWidth * dpr));
-      const height = Math.max(1, Math.floor(doveTunnelCanvas.clientHeight * dpr));
-      if (doveTunnelCanvas.width !== width || doveTunnelCanvas.height !== height) {
-        doveTunnelCanvas.width = width;
-        doveTunnelCanvas.height = height;
-      }
-    }
-
-    function compileDoveShader(gl, type, source) {
-      const shader = gl.createShader(type);
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        const message = gl.getShaderInfoLog(shader);
-        gl.deleteShader(shader);
-        throw new Error(message || "Dove tunnel shader failed");
-      }
-      return shader;
-    }
-
-    function createDoveProgram(gl) {
-      const vertexShader = compileDoveShader(gl, gl.VERTEX_SHADER, `
-        attribute vec2 aPosition;
-        attribute vec2 aUv;
-        uniform vec2 uHalfSize;
-        varying vec2 vUv;
-
-        void main() {
-          vUv = aUv;
-          gl_Position = vec4(aPosition * uHalfSize, 0.0, 1.0);
-        }
-      `);
-
-      const fragmentShader = compileDoveShader(gl, gl.FRAGMENT_SHADER, `
-        precision mediump float;
-
-        uniform sampler2D uTexture;
-        uniform float uOpacity;
-        varying vec2 vUv;
-
-        void main() {
-          vec4 color = texture2D(uTexture, vUv);
-          float distanceFromWhite = length(vec3(1.0) - color.rgb);
-          float alpha = smoothstep(0.035, 0.18, distanceFromWhite) * uOpacity;
-          if (alpha < 0.01) discard;
-          gl_FragColor = vec4(color.rgb, alpha);
-        }
-      `);
-
-      const program = gl.createProgram();
-      gl.attachShader(program, vertexShader);
-      gl.attachShader(program, fragmentShader);
-      gl.linkProgram(program);
-      gl.deleteShader(vertexShader);
-      gl.deleteShader(fragmentShader);
-
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        const message = gl.getProgramInfoLog(program);
-        gl.deleteProgram(program);
-        throw new Error(message || "Dove tunnel program failed");
-      }
-
-      return program;
-    }
-
-    function prepareDoveTextureSource(gl, img) {
-      const sourceWidth = img.naturalWidth || img.width;
-      const sourceHeight = img.naturalHeight || img.height;
-      const maxTextureSize = Math.min(
-        gl.getParameter(gl.MAX_TEXTURE_SIZE),
-        DOVE_TUNNEL.maxTextureSize
-      );
-      const scale = Math.min(1, maxTextureSize / Math.max(sourceWidth, sourceHeight));
-
-      doveTextureAspect = sourceWidth / sourceHeight;
-
-      if (scale >= 1) return img;
-
-      const textureCanvas = document.createElement("canvas");
-      textureCanvas.width = Math.max(1, Math.round(sourceWidth * scale));
-      textureCanvas.height = Math.max(1, Math.round(sourceHeight * scale));
-      const textureCtx = textureCanvas.getContext("2d", { alpha: false });
-      textureCtx.drawImage(img, 0, 0, textureCanvas.width, textureCanvas.height);
-      return textureCanvas;
-    }
-
-    function initDoveTunnel() {
-      if (!doveTunnelCanvas) return;
-
-      resizeDoveTunnel();
-      doveGl = doveTunnelCanvas.getContext("webgl", {
-        alpha: true,
-        antialias: true,
-        premultipliedAlpha: false,
-      });
-
-      if (!doveGl) {
-        console.warn("WebGL is unavailable for the dove tunnel.");
-        return;
-      }
-
-      try {
-        doveProgram = createDoveProgram(doveGl);
-      } catch (error) {
-        console.warn(error.message);
-        return;
-      }
-
-      doveVertexBuffer = doveGl.createBuffer();
-      doveGl.bindBuffer(doveGl.ARRAY_BUFFER, doveVertexBuffer);
-      doveGl.bufferData(doveGl.ARRAY_BUFFER, new Float32Array([
-        -1, -1, 0, 1,
-         1, -1, 1, 1,
-        -1,  1, 0, 0,
-        -1,  1, 0, 0,
-         1, -1, 1, 1,
-         1,  1, 1, 0,
-      ]), doveGl.STATIC_DRAW);
-
-      doveUniforms = {
-        halfSize: doveGl.getUniformLocation(doveProgram, "uHalfSize"),
-        opacity: doveGl.getUniformLocation(doveProgram, "uOpacity"),
-        texture: doveGl.getUniformLocation(doveProgram, "uTexture"),
-      };
-
-      doveTexture = doveGl.createTexture();
-      doveGl.bindTexture(doveGl.TEXTURE_2D, doveTexture);
-      doveGl.texParameteri(doveGl.TEXTURE_2D, doveGl.TEXTURE_WRAP_S, doveGl.CLAMP_TO_EDGE);
-      doveGl.texParameteri(doveGl.TEXTURE_2D, doveGl.TEXTURE_WRAP_T, doveGl.CLAMP_TO_EDGE);
-      doveGl.texParameteri(doveGl.TEXTURE_2D, doveGl.TEXTURE_MIN_FILTER, doveGl.LINEAR);
-      doveGl.texParameteri(doveGl.TEXTURE_2D, doveGl.TEXTURE_MAG_FILTER, doveGl.LINEAR);
-
-      loadImage(DOVE_TUNNEL.imagePath)
-        .then((img) => {
-          const textureSource = prepareDoveTextureSource(doveGl, img);
-          doveGl.bindTexture(doveGl.TEXTURE_2D, doveTexture);
-          doveGl.texImage2D(doveGl.TEXTURE_2D, 0, doveGl.RGBA, doveGl.RGBA, doveGl.UNSIGNED_BYTE, textureSource);
-          doveTunnelReady = true;
-          renderDoveTunnel();
-        })
-        .catch((error) => {
-          console.warn(error.message);
-        });
-    }
-
-    function getDoveTunnelProgress() {
-      const page = pageSections[4];
-      if (!page) return 0;
-      const distance = Math.max(1, page.offsetHeight - window.innerHeight);
-      return clamp((window.scrollY - page.offsetTop) / distance, 0, 1);
-    }
-
-    function isDoveTunnelNearViewport() {
-      const page = pageSections[4];
-      if (!page) return false;
-      const rect = page.getBoundingClientRect();
-      return rect.top < window.innerHeight * 1.15 && rect.bottom > -window.innerHeight * 0.15;
-    }
-
-    function renderDoveTunnel() {
-      if (!doveGl || !doveProgram || !doveTunnelReady) return;
-
-      const width = doveTunnelCanvas.width;
-      const height = doveTunnelCanvas.height;
-      if (!width || !height) return;
-
-      doveGl.viewport(0, 0, width, height);
-      doveGl.clearColor(0, 0, 0, 0);
-      doveGl.clear(doveGl.COLOR_BUFFER_BIT);
-      doveGl.enable(doveGl.BLEND);
-      doveGl.blendFunc(doveGl.SRC_ALPHA, doveGl.ONE_MINUS_SRC_ALPHA);
-      doveGl.useProgram(doveProgram);
-
-      const stride = 4 * Float32Array.BYTES_PER_ELEMENT;
-      const positionLocation = doveGl.getAttribLocation(doveProgram, "aPosition");
-      const uvLocation = doveGl.getAttribLocation(doveProgram, "aUv");
-      doveGl.bindBuffer(doveGl.ARRAY_BUFFER, doveVertexBuffer);
-      doveGl.enableVertexAttribArray(positionLocation);
-      doveGl.vertexAttribPointer(positionLocation, 2, doveGl.FLOAT, false, stride, 0);
-      doveGl.enableVertexAttribArray(uvLocation);
-      doveGl.vertexAttribPointer(uvLocation, 2, doveGl.FLOAT, false, stride, 2 * Float32Array.BYTES_PER_ELEMENT);
-
-      doveGl.activeTexture(doveGl.TEXTURE0);
-      doveGl.bindTexture(doveGl.TEXTURE_2D, doveTexture);
-      doveGl.uniform1i(doveUniforms.texture, 0);
-      doveGl.uniform1f(doveUniforms.opacity, 1);
-
-      const viewportAspect = width / height;
-      const fovRadians = DOVE_TUNNEL.fov * Math.PI / 180;
-      const perspective = 1 / Math.tan(fovRadians * 0.5);
-
-      DOVE_TUNNEL.layers
-        .map((layer) => ({
-          layer,
-          distance: doveCameraZ - layer.z,
-        }))
-        .filter(({ distance }) => distance > DOVE_TUNNEL.minDistance)
-        .sort((a, b) => b.distance - a.distance)
-        .forEach(({ layer, distance }) => {
-          const worldHeight = DOVE_TUNNEL.planeHeight * layer.scale;
-          const worldWidth = worldHeight * doveTextureAspect;
-          const halfHeight = (worldHeight * 0.5 * perspective) / distance;
-          const halfWidth = (worldWidth * 0.5 * perspective / viewportAspect) / distance;
-          doveGl.uniform2f(doveUniforms.halfSize, halfWidth, halfHeight);
-          doveGl.drawArrays(doveGl.TRIANGLES, 0, 6);
-        });
-    }
-
-    function createTransparentDoveSource(img) {
-      const sourceWidth = img.naturalWidth || img.width;
-      const sourceHeight = img.naturalHeight || img.height;
-      const maxSide = 1400;
-      const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
-      const textureCanvas = document.createElement("canvas");
-      textureCanvas.width = Math.max(1, Math.round(sourceWidth * scale));
-      textureCanvas.height = Math.max(1, Math.round(sourceHeight * scale));
-      const textureCtx = textureCanvas.getContext("2d", { willReadFrequently: true });
-      textureCtx.drawImage(img, 0, 0, textureCanvas.width, textureCanvas.height);
-
-      const imageData = textureCtx.getImageData(0, 0, textureCanvas.width, textureCanvas.height);
-      const data = imageData.data;
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        const min = Math.min(r, g, b);
-        const max = Math.max(r, g, b);
-        const spread = max - min;
-        if (min > 248 && spread < 7) {
-          data[i + 3] = 0;
-        } else {
-          data[i + 3] = 255;
-        }
-      }
-      textureCtx.putImageData(imageData, 0, 0);
-      return textureCanvas.toDataURL("image/png");
-    }
-
-    function initDoveCssTunnel() {
-      if (!doveCssRings.length) return;
-      loadImage(DOVE_TUNNEL.imagePath)
-        .then((img) => {
-          const transparentSource = createTransparentDoveSource(img);
-          doveCssRings.forEach((ring) => {
-            const image = ring.querySelector("img");
-            if (image) image.src = transparentSource;
-          });
-          doveCssReady = true;
-          updateDoveCssTunnel();
-        })
-        .catch((error) => {
-          console.warn(error.message);
-        });
-    }
-
-    function updateDoveCssTunnel() {
-      if (!doveCssReady || !doveCssRings.length) return;
-
-      const viewportAspect = window.innerWidth / Math.max(1, window.innerHeight);
-      const baseScale = viewportAspect < 0.7 ? 1.45 : 1;
-
-      doveCssRings.forEach((ring, index) => {
-        const layer = DOVE_TUNNEL.layers[index];
-        const distance = doveCameraZ - layer.z;
-        if (!layer || distance <= DOVE_TUNNEL.minDistance) {
-          ring.style.opacity = "0";
-          return;
-        }
-
-        const depthScale = clamp(DOVE_TUNNEL.cameraStartZ / distance, 0.08, DOVE_TUNNEL.maxDepthScale);
-        const scale = baseScale * layer.scale * depthScale;
-        ring.style.zIndex = String(doveCssRings.length - index);
-        ring.style.opacity = "1";
-        ring.style.setProperty("--ring-inner", layer.ringInner);
-        ring.style.setProperty("--ring-outer", layer.ringOuter);
-        ring.style.setProperty("--ring-scale", scale.toFixed(4));
-      });
-    }
-
-    function updateDoveTunnel() {
-      const page5 = pageSections[4];
-      const page5Rect = page5.getBoundingClientRect();
-      const isPage5Active = page5Rect.top <= window.innerHeight * 0.5
-        && page5Rect.bottom >= window.innerHeight * 0.5;
-      if (doveTunnelFallback) {
-        doveTunnelFallback.style.opacity = isPage5Active ? "1" : "0";
-      }
-      if (!doveTunnelCanvas || !isPage5Active) return;
-      const progress = smoothstep(0, 1, getDoveTunnelProgress());
-      doveTargetCameraZ = lerp(DOVE_TUNNEL.cameraStartZ, DOVE_TUNNEL.cameraEndZ, progress);
-      doveCameraZ = lerp(doveCameraZ, doveTargetCameraZ, DOVE_TUNNEL.smoothing);
-      renderDoveTunnel();
-      updateDoveCssTunnel();
     }
 
     /* ═══════════════════════════════════════════
@@ -1505,7 +1291,6 @@
       updatePlayback();
       syncAudio();
       updateCanvasVisibility();
-      updateDoveTunnel();
 
       if (isVideoPage(getActivePageIndex())) {
         preloadAroundFrame(currentFrame);
@@ -1779,14 +1564,10 @@
        初始化
        ═══════════════════════════════════════════ */
     resizeCanvas();
-    resizeDoveTunnel();
-    initDoveTunnel();
-    initDoveCssTunnel();
     updateSoundToggleUI();
     window.addEventListener("resize", () => {
       resizeCanvas();
       resizeCursorCanvas();
-      resizeDoveTunnel();
     });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("pointerdown", () => syncAudio(), { once: true });
@@ -1823,5 +1604,6 @@
       python3 -m http.server 8123
     */
   </script>
+  <script src="portfolio-module.js"></script>
 </body>
 </html>
