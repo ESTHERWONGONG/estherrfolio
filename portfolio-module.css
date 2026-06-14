@@ -30,7 +30,7 @@
   --pt-content-inset-right: calc(var(--pt-close-size) + var(--pt-close-gap));
   --pt-intro-trim: calc(2 * 1.6 * clamp(0.78rem, 0.92vw, 0.92rem));
   --pt-modal-panel-pad: clamp(1rem, 2.2vw, 2rem);
-  --pt-visual-nav-size: clamp(42px, 3.8vw, 54px);
+  --pt-visual-nav-size: clamp(58px, 5vw, 78px);
   --pt-visual-nav-inset: clamp(0.55rem, 1.1vw, 0.9rem);
   --pt-visual-slot-top: calc(var(--pt-modal-panel-pad) + clamp(3.8rem, 8.5vh, 6.2rem));
   --pt-visual-slot-bottom: var(--pt-modal-panel-pad);
@@ -1118,15 +1118,17 @@
   text-indent: 200%;
   white-space: nowrap;
   box-shadow: none;
-  overflow: hidden;
+  overflow: visible;
   transform: translateY(-50%);
   transition: transform 0.22s ease, filter 0.22s ease;
 }
 
 .pt-visual-nav::before {
+  position: absolute;
+  inset: 0;
   display: block;
-  width: 300%;
-  height: 300%;
+  width: 100%;
+  height: 100%;
   content: "";
   background: url("./assets/p2/arrow_right.png") center / contain no-repeat;
   filter: brightness(1.08) drop-shadow(0 0 10px rgba(255, 206, 148, 0.28));
@@ -2438,6 +2440,7 @@ body.pt-modal-lock .nav {
 
 .portfolio-embed .pt-frame {
   inset: clamp(10px, 1vw, 14px);
+  display: none;
 }
 
 .portfolio-embed .pt-dual-board .pt-scene-header {

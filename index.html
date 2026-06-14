@@ -2699,9 +2699,40 @@
       el.style.pointerEvents = state.opacity > 0.4 ? "auto" : "none";
     }
 
+    function setPageContentStateImmediately(el, state, opacity, translateY) {
+      state.opacity = opacity;
+      state.translateY = translateY;
+      el.style.opacity = opacity.toFixed(3);
+      const isLeft = el.classList.contains("page__content--left");
+      el.style.transform = isLeft
+        ? `translateY(calc(-50% + ${translateY.toFixed(2)}px))`
+        : `translate(-50%, calc(-50% + ${translateY.toFixed(2)}px))`;
+      el.style.pointerEvents = opacity > 0.4 ? "auto" : "none";
+    }
+
+    function snapPageContentToIndex(activeIndex) {
+      pageContents.forEach((contentEl, i) => {
+        const directionOffset = i < activeIndex
+          ? -CONFIG.textSlideDistance * 0.5
+          : CONFIG.textSlideDistance;
+        const shouldShowActiveContent = i === activeIndex
+          && (activeIndex !== PAGE2_INDEX || pagePlayback[PAGE2_INDEX].done);
+        const opacity = shouldShowActiveContent ? 1 : 0;
+        const translateY = i === activeIndex ? 0 : directionOffset;
+        setPageContentStateImmediately(contentEl, pageContentState[i], opacity, translateY);
+      });
+    }
+
     function updateContentUI() {
-      const activeIndex = getActivePageIndex();
-      const activeProgress = getPagePlaybackProgress(activeIndex);
+      const activeIndex = isSectionScrolling && targetPageIndex !== null
+        ? targetPageIndex
+        : getActivePageIndex();
+      const activeProgressBase = isSectionScrolling && targetPageIndex !== null
+        ? 1
+        : getPagePlaybackProgress(activeIndex);
+      const activeProgress = activeIndex === PAGE2_INDEX
+        ? (pagePlayback[PAGE2_INDEX].done ? 1 : 0)
+        : activeProgressBase;
 
       if (activeIndex !== lastActiveNode) {
         lastActiveNode = activeIndex;
@@ -2722,7 +2753,7 @@
           opacity = fadeIn * fadeOut;
           const slideBase = (1 - fadeIn) * CONFIG.textSlideDistance;
           y = scrollDirection > 0 ? slideBase : -slideBase;
-        } else if (i === activeIndex - 1) {
+        } else if (i === activeIndex - 1 && activeIndex !== PAGE2_INDEX) {
           const fadeOut = 1 - smoothstep(0, CONFIG.textFadeOutRatio, activeProgress);
           opacity = fadeOut * 0.35;
           y = scrollDirection > 0 ? -CONFIG.textSlideDistance * 0.5 : CONFIG.textSlideDistance * 0.5;
@@ -2752,10 +2783,12 @@
     let lastScrollY = window.scrollY;
     const SECTION_SCROLL_DURATION = 620;
     const WHEEL_DELTA_THRESHOLD = 24;
-    const WHEEL_GESTURE_LOCK_MS = 720;
+    const POST_SCROLL_COOLDOWN_MS = 420;
     let isScrollLocked = false;
+    let isSectionScrolling = false;
     let wheelGestureLocked = false;
-    let wheelUnlockTimer = 0;
+    let targetPageIndex = null;
+    let postScrollCooldownTimer = 0;
     let scrollTweenFrame = null;
 
     function easeInOutCubic(t) {
@@ -2765,20 +2798,23 @@
     }
 
     function clearWheelGestureLock() {
-      if (wheelUnlockTimer) {
-        window.clearTimeout(wheelUnlockTimer);
-        wheelUnlockTimer = 0;
+      if (postScrollCooldownTimer) {
+        window.clearTimeout(postScrollCooldownTimer);
+        postScrollCooldownTimer = 0;
       }
       wheelGestureLocked = false;
     }
 
-    function scheduleWheelGestureUnlock() {
+    function beginPostScrollCooldown() {
       clearWheelGestureLock();
       wheelGestureLocked = true;
-      wheelUnlockTimer = window.setTimeout(() => {
+      postScrollCooldownTimer = window.setTimeout(() => {
+        isSectionScrolling = false;
+        isScrollLocked = false;
+        targetPageIndex = null;
         wheelGestureLocked = false;
-        wheelUnlockTimer = 0;
-      }, WHEEL_GESTURE_LOCK_MS);
+        postScrollCooldownTimer = 0;
+      }, POST_SCROLL_COOLDOWN_MS);
     }
 
     function canScrollWithin(element, deltaY) {
@@ -2831,12 +2867,14 @@
       const startY = window.scrollY;
       const targetY = Math.round(index * window.innerHeight);
 
-      if (isScrollLocked) {
+      if (isScrollLocked || isSectionScrolling) {
         return false;
       }
 
       if (Math.abs(targetY - startY) < 2) {
         window.scrollTo(0, targetY);
+        snapPageContentToIndex(index);
+        lastScrollY = targetY;
         return false;
       }
 
@@ -2845,7 +2883,11 @@
         scrollTweenFrame = null;
       }
 
+      clearWheelGestureLock();
       isScrollLocked = true;
+      isSectionScrolling = true;
+      targetPageIndex = index;
+      wheelGestureLocked = true;
       const startedAt = performance.now();
 
       const step = (now) => {
@@ -2862,7 +2904,9 @@
 
         window.scrollTo(0, targetY);
         scrollTweenFrame = null;
-        isScrollLocked = false;
+        lastScrollY = targetY;
+        snapPageContentToIndex(index);
+        beginPostScrollCooldown();
       };
 
       scrollTweenFrame = window.requestAnimationFrame(step);
@@ -2873,22 +2917,20 @@
       if (event.ctrlKey || event.metaKey) return;
       if (shouldBypassControlledScroll(event)) return;
 
-      const { deltaX, deltaY } = event;
-      if (Math.abs(deltaY) <= Math.abs(deltaX) || Math.abs(deltaY) < WHEEL_DELTA_THRESHOLD) {
+      event.preventDefault();
+
+      if (isSectionScrolling || wheelGestureLocked || isScrollLocked) {
         return;
       }
 
-      event.preventDefault();
-
-      if (isScrollLocked || wheelGestureLocked) {
+      const { deltaX, deltaY } = event;
+      if (Math.abs(deltaY) <= Math.abs(deltaX) || Math.abs(deltaY) < WHEEL_DELTA_THRESHOLD) {
         return;
       }
 
       const currentIndex = getActivePageIndex();
       const direction = deltaY > 0 ? 1 : -1;
       const targetIndex = clamp(currentIndex + direction, 0, NODES.length - 1);
-
-      scheduleWheelGestureUnlock();
 
       if (targetIndex === currentIndex) {
         return;
