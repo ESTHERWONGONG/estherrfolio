@@ -2649,6 +2649,12 @@
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("pt-modal-lock");
     document.body.style.top = "-" + lockedScrollY + "px";
+    window.dispatchEvent(new CustomEvent("pt:portfolio-modal-toggle", {
+      detail: {
+        isOpen: true,
+        lockedScrollY: lockedScrollY
+      }
+    }));
     modal.querySelector(".pt-close").focus({ preventScroll: true });
     updateScrollUi();
     updateVisualNav();
@@ -2695,6 +2701,12 @@
     document.body.classList.remove("pt-modal-lock");
     document.body.style.top = "";
     window.scrollTo(0, lockedScrollY);
+    window.dispatchEvent(new CustomEvent("pt:portfolio-modal-toggle", {
+      detail: {
+        isOpen: false,
+        lockedScrollY: lockedScrollY
+      }
+    }));
 
     if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
       lastFocusedElement.focus({ preventScroll: true });

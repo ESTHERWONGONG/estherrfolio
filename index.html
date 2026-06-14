@@ -2134,6 +2134,7 @@
     const page4PreviewCtx = page4PreviewLayer ? page4PreviewLayer.getContext("2d") : null;
     const page4ScratchMaskCanvas = page4PreviewCtx ? document.createElement("canvas") : null;
     const page4ScratchMaskCtx = page4ScratchMaskCanvas ? page4ScratchMaskCanvas.getContext("2d") : null;
+    const PAGE2_INDEX = 1;
     const PAGE3_INDEX = 2;
     const PAGE4_INDEX = 3;
     const PAGE3_BG_PATH = "outputs/assets/images/page3/page3_bg.png";
@@ -2160,6 +2161,8 @@
     let isShowingPage3Background = false;
     let isReady = false;
     let lastActiveNode = -1;
+    let isPortfolioModalOpen = false;
+    let preservedPage2PlaybackState = null;
     const AUDIO_ENABLED = false;
     let soundEnabled = false;
     let page4LastTrailPoint = null;
@@ -2216,6 +2219,40 @@
       }
       pagePlayback[pageIndex].frame = node.startFrame;
       pagePlayback[pageIndex].done = false;
+    }
+
+    function preservePage2PlaybackState(lockedScrollY = window.scrollY) {
+      preservedPage2PlaybackState = {
+        activePageIndex: getActivePageIndex(),
+        frame: pagePlayback[PAGE2_INDEX].frame,
+        done: pagePlayback[PAGE2_INDEX].done,
+        lastPageIndex,
+        lockedScrollY,
+      };
+    }
+
+    function restorePage2PlaybackState(lockedScrollY = window.scrollY) {
+      if (!preservedPage2PlaybackState) return;
+
+      const restoreState = preservedPage2PlaybackState;
+      const page2Node = NODES[PAGE2_INDEX];
+      const frame = restoreState.done
+        ? page2Node.endFrame
+        : clamp(restoreState.frame, page2Node.startFrame, page2Node.endFrame);
+
+      window.scrollTo(0, restoreState.lockedScrollY ?? lockedScrollY);
+      pagePlayback[PAGE2_INDEX].frame = frame;
+      pagePlayback[PAGE2_INDEX].done = restoreState.done;
+      lastPageIndex = restoreState.lastPageIndex;
+      lastScrollY = restoreState.lockedScrollY ?? lockedScrollY;
+
+      if (restoreState.activePageIndex === PAGE2_INDEX) {
+        currentFrame = frame;
+        displayedFrame = -1;
+        renderFrame(frame);
+      }
+
+      preservedPage2PlaybackState = null;
     }
 
     function updateCanvasVisibility() {
@@ -2858,6 +2895,17 @@
     function updatePlayback() {
       const pageIndex = getActivePageIndex();
 
+      if (isPortfolioModalOpen) {
+        if (isVideoPage(pageIndex)) {
+          const pb = pagePlayback[pageIndex];
+          const node = NODES[pageIndex];
+          currentFrame = pb.done ? node.endFrame : pb.frame;
+        } else {
+          currentFrame = CONFIG.totalFrames;
+        }
+        return;
+      }
+
       if (pageIndex !== lastPageIndex) {
         if (lastPageIndex === PAGE4_INDEX && pageIndex !== PAGE4_INDEX) {
           resetPage4FlipState();
@@ -3120,6 +3168,19 @@
       if (event.key === "Escape" && introModalOpen) {
         closeIntroModal();
       }
+    });
+
+    window.addEventListener("pt:portfolio-modal-toggle", (event) => {
+      const detail = event.detail || {};
+
+      if (detail.isOpen) {
+        preservePage2PlaybackState(detail.lockedScrollY);
+        isPortfolioModalOpen = true;
+        return;
+      }
+
+      restorePage2PlaybackState(detail.lockedScrollY);
+      isPortfolioModalOpen = false;
     });
 
     /* ═══════════════════════════════════════════
