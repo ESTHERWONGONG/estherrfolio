@@ -2027,8 +2027,10 @@
     const page4Scene = document.querySelector(".page4-scene");
     const page4BackLayer = document.querySelector(".page4-layer--back");
     const page4FrontLayer = document.querySelector(".page4-layer--front");
+    const page4HandLayer = document.querySelector(".page4-layer--hand");
     const page4HandAltLayer = document.querySelector(".page4-layer--hand-alt");
     const page4WaterHotspot = document.querySelector(".water-hotspot");
+    const page4BallBg1Layer = document.querySelector(".page4-ball--bg1");
     const page4BallBg2Layer = document.querySelector(".page4-ball--bg2");
     const page4PreviewLayer = document.getElementById("page4PreviewLayer");
     const page4PreviewCtx = page4PreviewLayer ? page4PreviewLayer.getContext("2d") : null;
@@ -2037,12 +2039,10 @@
     const PAGE3_INDEX = 2;
     const PAGE4_INDEX = 3;
     const PAGE3_BG_PATH = "outputs/assets/images/page3/page3_bg.png";
-    const PAGE4_REVEAL_STROKE_DISTANCE = 30;
-    const PAGE4_FLIP_TRIGGER_STROKES = 5;
-    const PAGE4_STROKE_GESTURE_COOLDOWN_MS = 420;
     const PAGE4_SCRATCH_BRUSH_RADIUS = 33;
     const PAGE4_SCRATCH_BRUSH_STEP = 28;
     const PAGE4_TRAIL_POINT_LIFE = 1120;
+    const PAGE4_ENTER_PREVIEW_LIFE = 860;
 
     const frames = new Array(CONFIG.totalFrames + 1);
     const loadingPromises = new Map();
@@ -2064,11 +2064,8 @@
     let lastActiveNode = -1;
     const AUDIO_ENABLED = false;
     let soundEnabled = false;
-    let page4StrokeCount = 0;
-    let page4StrokeLocked = false;
-    let page4LastStrokePoint = null;
     let page4LastTrailPoint = null;
-    let page4StrokeUnlockTimer = 0;
+    let page4PointerInsideBallRegion = false;
     let page4RevealPoints = [];
     let page4RevealLoopRaf = null;
     let page4RevealLastFrame = 0;
@@ -2340,18 +2337,41 @@
       };
     }
 
+    function isPointInsidePage4Ball(point) {
+      if (!page4Scene || !point) return false;
+      const rect = page4Scene.getBoundingClientRect();
+      const styles = window.getComputedStyle(page4Scene);
+      const centerXRatio = (parseFloat(styles.getPropertyValue("--orb-center-x")) || 63) / 100;
+      const centerYRatio = (parseFloat(styles.getPropertyValue("--orb-center-y")) || 61) / 100;
+      const orbSizePercent = (parseFloat(styles.getPropertyValue("--orb-size")) || 13) + 0.8;
+      const centerX = rect.width * centerXRatio;
+      const centerY = rect.height * centerYRatio;
+      const radius = (rect.width * orbSizePercent) / 100 / 2;
+      return Math.hypot(point.x - centerX, point.y - centerY) <= radius;
+    }
+
     function startPage4RevealLoop() {
-      if (page4RevealLoopRaf !== null || page4IsFlipped) return;
+      if (page4RevealLoopRaf !== null) return;
       page4RevealLoopRaf = window.requestAnimationFrame(stepPage4RevealLoop);
     }
 
-    function queuePage4TrailStamp(x, y, strength = 1) {
+    function queuePage4TrailStamp(
+      x,
+      y,
+      {
+        strength = 1,
+        life = PAGE4_TRAIL_POINT_LIFE,
+        alphaScale = 1,
+        radiusScale = 1,
+      } = {}
+    ) {
       page4RevealPoints.push({
         x,
         y,
-        life: PAGE4_TRAIL_POINT_LIFE,
-        maxLife: PAGE4_TRAIL_POINT_LIFE,
-        radius: PAGE4_SCRATCH_BRUSH_RADIUS * (0.92 + strength * 0.12),
+        life,
+        maxLife: life,
+        alphaScale,
+        radius: PAGE4_SCRATCH_BRUSH_RADIUS * (0.92 + strength * 0.12) * radiusScale,
       });
     }
 
@@ -2362,26 +2382,10 @@
         queuePage4TrailStamp(
           lerp(from.x, to.x, t),
           lerp(from.y, to.y, t),
-          0.9
+          { strength: 0.9 }
         );
       }
       startPage4RevealLoop();
-    }
-
-    function clearPage4StrokeUnlockTimer() {
-      if (page4StrokeUnlockTimer) {
-        window.clearTimeout(page4StrokeUnlockTimer);
-        page4StrokeUnlockTimer = 0;
-      }
-    }
-
-    function schedulePage4StrokeUnlock() {
-      clearPage4StrokeUnlockTimer();
-      page4StrokeUnlockTimer = window.setTimeout(() => {
-        page4StrokeLocked = false;
-        page4LastStrokePoint = null;
-        page4StrokeUnlockTimer = 0;
-      }, PAGE4_STROKE_GESTURE_COOLDOWN_MS);
     }
 
     function drawPage4TrailMask() {
@@ -2394,7 +2398,7 @@
         const lifeRatio = clamp(point.life / point.maxLife, 0, 1);
         const easedLife = easeOutCubic(lifeRatio);
         const radius = point.radius * (1.02 + (1 - lifeRatio) * 0.18);
-        const alpha = easedLife * 0.98;
+        const alpha = easedLife * 0.98 * (point.alphaScale ?? 1);
         const gradient = page4ScratchMaskCtx.createRadialGradient(point.x, point.y, 0, point.x, point.y, radius);
         gradient.addColorStop(0, `rgba(255,255,255,${alpha})`);
         gradient.addColorStop(0.42, `rgba(255,255,255,${alpha * 0.96})`);
@@ -2419,7 +2423,7 @@
 
       renderPage4RevealPreview();
 
-      if (!page4IsFlipped && page4RevealPoints.length) {
+      if (page4RevealPoints.length) {
         page4RevealLoopRaf = window.requestAnimationFrame(stepPage4RevealLoop);
         return;
       }
@@ -2433,7 +2437,7 @@
 
       page4PreviewCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-      if (page4IsFlipped || !page4BackLayer || !page4ScratchMaskCanvas || !page4RevealPoints.length) {
+      if (!page4ScratchMaskCanvas || !page4RevealPoints.length) {
         page4PreviewLayer.style.opacity = "0";
         if (page4ScratchMaskCtx) {
           page4ScratchMaskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -2443,12 +2447,16 @@
 
       const maxAlpha = drawPage4TrailMask();
 
-      drawCoverToContext(page4PreviewCtx, page4BackLayer, window.innerWidth, window.innerHeight);
-      if (page4BallBg2Layer) {
-        drawCoverToContext(page4PreviewCtx, page4BallBg2Layer, window.innerWidth, window.innerHeight);
+      const previewBaseLayer = page4IsFlipped ? page4FrontLayer : page4BackLayer;
+      const previewBallLayer = page4IsFlipped ? page4BallBg1Layer : page4BallBg2Layer;
+      const previewHandLayer = page4IsFlipped ? page4HandLayer : page4HandAltLayer;
+
+      drawCoverToContext(page4PreviewCtx, previewBaseLayer, window.innerWidth, window.innerHeight);
+      if (previewBallLayer) {
+        drawCoverToContext(page4PreviewCtx, previewBallLayer, window.innerWidth, window.innerHeight);
       }
-      if (page4HandAltLayer) {
-        drawCoverToContext(page4PreviewCtx, page4HandAltLayer, window.innerWidth, window.innerHeight);
+      if (previewHandLayer) {
+        drawCoverToContext(page4PreviewCtx, previewHandLayer, window.innerWidth, window.innerHeight);
       }
       page4PreviewCtx.globalCompositeOperation = "destination-in";
       page4PreviewCtx.drawImage(page4ScratchMaskCanvas, 0, 0, window.innerWidth, window.innerHeight);
@@ -2456,12 +2464,9 @@
       page4PreviewLayer.style.opacity = String(clamp(maxAlpha * 1.04, 0, 1));
     }
 
-    function resetPage4StrokeTracking() {
-      page4StrokeCount = 0;
-      page4StrokeLocked = false;
-      page4LastStrokePoint = null;
+    function resetPage4InteractionTracking() {
       page4LastTrailPoint = null;
-      clearPage4StrokeUnlockTimer();
+      page4PointerInsideBallRegion = false;
     }
 
     function clearPage4Reveal() {
@@ -2496,68 +2501,42 @@
         page4Scene.classList.remove("is-page4-flipped");
       }
       clearPage4Reveal();
-      resetPage4StrokeTracking();
+      resetPage4InteractionTracking();
     }
 
-    function startPage4FlipReveal() {
-      if (!page4Scene || page4IsFlipped) return;
+    function setPage4FlipState(nextFlipped) {
+      if (!page4Scene || page4IsFlipped === nextFlipped) return;
 
-      page4IsFlipped = true;
+      page4IsFlipped = nextFlipped;
       clearPage4Reveal();
-      page4Scene.classList.add("is-page4-flipped");
+      page4Scene.classList.toggle("is-page4-flipped", nextFlipped);
     }
 
     function handlePage4SceneMove(event) {
-      if (page4IsFlipped) {
-        return;
-      }
-
       const point = getPage4LocalPoint(event);
       if (!point) return;
 
       if (!page4LastTrailPoint) {
         page4LastTrailPoint = point;
-        page4LastStrokePoint = point;
+        page4PointerInsideBallRegion = isPointInsidePage4Ball(point);
         return;
       }
 
       const trailDx = point.x - page4LastTrailPoint.x;
       const trailDy = point.y - page4LastTrailPoint.y;
       const trailDistance = Math.hypot(trailDx, trailDy);
+      const isInsideBallRegion = isPointInsidePage4Ball(point);
 
-      if (trailDistance < 4) {
-        return;
+      if (trailDistance >= 4) {
+        applyPage4ScratchTrail(page4LastTrailPoint, point, trailDistance);
+        page4LastTrailPoint = point;
       }
 
-      applyPage4ScratchTrail(page4LastTrailPoint, point, trailDistance);
-      page4LastTrailPoint = point;
-
-      if (!page4LastStrokePoint) {
-        page4LastStrokePoint = point;
-        return;
+      if (isInsideBallRegion && !page4PointerInsideBallRegion) {
+        setPage4FlipState(!page4IsFlipped);
       }
 
-      if (page4StrokeLocked) {
-        schedulePage4StrokeUnlock();
-        return;
-      }
-
-      const strokeDx = point.x - page4LastStrokePoint.x;
-      const strokeDy = point.y - page4LastStrokePoint.y;
-      const strokeDistance = Math.hypot(strokeDx, strokeDy);
-
-      if (strokeDistance < PAGE4_REVEAL_STROKE_DISTANCE) {
-        return;
-      }
-
-      page4StrokeCount += 1;
-      page4StrokeLocked = true;
-      page4LastStrokePoint = point;
-      schedulePage4StrokeUnlock();
-
-      if (page4StrokeCount >= PAGE4_FLIP_TRIGGER_STROKES) {
-        startPage4FlipReveal();
-      }
+      page4PointerInsideBallRegion = isInsideBallRegion;
     }
 
     function applyPageContent(el, state, targetOpacity, targetY) {
@@ -2608,6 +2587,8 @@
         const page1Done = pagePlayback[0].done;
         scrollHint.textContent = page1Done ? "Scroll down" : "Scroll to explore";
         scrollHint.style.opacity = String(page1Done ? 0.6 : Math.max(0, 0.48 - activeProgress * 0.48));
+      } else if (activeIndex === PAGE4_INDEX) {
+        scrollHint.style.opacity = "0";
       } else if (isLastPage) {
         scrollHint.style.opacity = String(Math.max(0, 0.6 - activeProgress));
       } else {
@@ -2920,20 +2901,24 @@
 
     if (page4Scene) {
       page4Scene.addEventListener("mouseenter", (event) => {
-        if (page4IsFlipped) return;
         const point = getPage4LocalPoint(event);
-        page4StrokeLocked = false;
-        clearPage4StrokeUnlockTimer();
-        page4LastStrokePoint = point;
         page4LastTrailPoint = point;
+        page4PointerInsideBallRegion = isPointInsidePage4Ball(point);
+        if (point) {
+          queuePage4TrailStamp(point.x, point.y, {
+            strength: 0.42,
+            life: PAGE4_ENTER_PREVIEW_LIFE,
+            alphaScale: 0.18,
+            radiusScale: 1.16,
+          });
+          startPage4RevealLoop();
+        }
       });
 
       page4Scene.addEventListener("mousemove", handlePage4SceneMove);
       page4Scene.addEventListener("mouseleave", () => {
-        page4StrokeLocked = false;
-        page4LastStrokePoint = null;
         page4LastTrailPoint = null;
-        clearPage4StrokeUnlockTimer();
+        page4PointerInsideBallRegion = false;
       });
     }
 
