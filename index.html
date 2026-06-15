@@ -62,7 +62,7 @@
       top: 0;
       left: 0;
       pointer-events: none;
-      z-index: 9999;
+      z-index: 10020;
       background-repeat: no-repeat;
       background-position: center;
       background-size: contain;
@@ -105,7 +105,7 @@
       height: 100vh;
       height: 100dvh;
       pointer-events: none;
-      z-index: 10;
+      z-index: 10010;
     }
 
     .pages {
@@ -244,17 +244,29 @@
       visibility: visible;
       opacity: 1;
       pointer-events: none;
-      overflow: hidden;
-      -webkit-mask-image: url("outputs/assets/images/page5/kuang1.png?v=alpha-mask-2");
-      mask-image: url("outputs/assets/images/page5/kuang1.png?v=alpha-mask-2");
+      overflow: visible !important;
+      background: rgba(255, 0, 0, 0.25) !important;
+      outline: 3px solid lime !important;
+      -webkit-mask-image: url("outputs/assets/images/page5/mask-inverted.png?v=mask-debug-2");
+      mask-image: url("outputs/assets/images/page5/mask-inverted.png?v=mask-debug-2");
       -webkit-mask-size: 100% 100%;
       mask-size: 100% 100%;
-      -webkit-mask-position: 0 0;
-      mask-position: 0 0;
+      -webkit-mask-position: center;
+      mask-position: center;
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
       -webkit-mask-mode: alpha;
       mask-mode: alpha;
+    }
+
+    .page5-mask-debug-layer {
+      position: absolute;
+      z-index: 9;
+      opacity: 0.5;
+      pointer-events: none;
+      object-fit: fill;
+      outline: 2px solid cyan;
+      mix-blend-mode: screen;
     }
 
     .page5-right-eye-anchor {
@@ -287,6 +299,18 @@
     .page5-right-eye-window.is-resting .page5-right-eye-ball {
       transition-duration: 680ms;
       transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .page5-eye-debug-fill {
+      width: 200px !important;
+      height: 200px !important;
+      background: red !important;
+      opacity: 1 !important;
+      position: absolute !important;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      z-index: 9999 !important;
     }
 
     .page4-layer--back {
@@ -816,7 +840,7 @@
 
     .loader.is-ready .loader__enter-btn {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(0);
       pointer-events: auto;
     }
 
@@ -852,19 +876,23 @@
     }
 
     .loader__enter-btn {
+      position: fixed;
+      left: 50%;
+      bottom: clamp(54px, 10vh, 112px);
+      width: min(460px, 78vw);
       border: 1px solid var(--gold-dim);
       border-radius: 999px;
-      padding: 14px 34px;
+      padding: 18px 54px;
       color: var(--gold);
       font: inherit;
-      font-size: 13px;
-      letter-spacing: 0.2em;
+      font-size: 15px;
+      letter-spacing: 0.24em;
       text-transform: uppercase;
       background: rgba(0, 0, 0, 0.2);
       backdrop-filter: blur(4px);
       cursor: pointer;
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateX(-50%) translateY(14px);
       pointer-events: none;
       transition:
         opacity 0.36s ease,
@@ -883,10 +911,10 @@
     }
 
     .loader__enter-btn span + span {
-      margin-top: 4px;
+      margin-top: 6px;
       color: rgba(238, 248, 255, 0.78);
-      font-size: 11px;
-      letter-spacing: 0.22em;
+      font-size: 12px;
+      letter-spacing: 0.24em;
     }
 
     .scroll-hint {
@@ -1754,9 +1782,10 @@
         <div class="page5-frame-layer" id="page5FrameLayer">
           <img class="page5-layer" id="page5FrameImage" src="outputs/assets/images/page5/page5_00.png" alt="">
         </div>
+        <img class="page5-mask-debug-layer" id="page5MaskDebugLayer" src="outputs/assets/images/page5/mask-inverted.png?v=mask-debug-2" alt="">
         <div class="page5-right-eye-window" id="page5RightEyeWindow">
           <div class="page5-right-eye-anchor">
-            <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=transparent-eye-2" alt="">
+            <div class="page5-eye-debug-fill"></div>
           </div>
         </div>
       </div>
@@ -2256,6 +2285,8 @@
     const page4ScratchMaskCtx = page4ScratchMaskCanvas ? page4ScratchMaskCanvas.getContext("2d") : null;
     const page5Section = document.getElementById("page-5");
     const page5RightEyeWindow = document.getElementById("page5RightEyeWindow");
+    const page5MaskDebugLayer = document.getElementById("page5MaskDebugLayer");
+    const page5EyeDebugFill = document.querySelector(".page5-eye-debug-fill");
     const PAGE2_INDEX = 1;
     const PAGE3_INDEX = 2;
     const PAGE4_INDEX = 3;
@@ -2844,6 +2875,39 @@
       page5RightEyeWindow.style.top = `${rect.top}px`;
       page5RightEyeWindow.style.width = `${rect.width}px`;
       page5RightEyeWindow.style.height = `${rect.height}px`;
+      if (page5MaskDebugLayer) {
+        page5MaskDebugLayer.style.left = `${rect.left}px`;
+        page5MaskDebugLayer.style.top = `${rect.top}px`;
+        page5MaskDebugLayer.style.width = `${rect.width}px`;
+        page5MaskDebugLayer.style.height = `${rect.height}px`;
+      }
+      logPage5EyeDebugState();
+    }
+
+    function logPage5EyeDebugState() {
+      if (!page5RightEyeWindow || !page5EyeDebugFill) return;
+      const windowStyle = window.getComputedStyle(page5RightEyeWindow);
+      const fillStyle = window.getComputedStyle(page5EyeDebugFill);
+      console.log("[page5 eye debug]", {
+        windowRect: page5RightEyeWindow.getBoundingClientRect(),
+        fillRect: page5EyeDebugFill.getBoundingClientRect(),
+        windowStyle: {
+          display: windowStyle.display,
+          opacity: windowStyle.opacity,
+          visibility: windowStyle.visibility,
+          zIndex: windowStyle.zIndex,
+          width: windowStyle.width,
+          height: windowStyle.height,
+        },
+        fillStyle: {
+          display: fillStyle.display,
+          opacity: fillStyle.opacity,
+          visibility: fillStyle.visibility,
+          zIndex: fillStyle.zIndex,
+          width: fillStyle.width,
+          height: fillStyle.height,
+        },
+      });
     }
 
     function setPage5EyeOffset(x = 0, y = 0, isResting = false) {
