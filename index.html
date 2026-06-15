@@ -232,6 +232,63 @@
       pointer-events: none;
     }
 
+    .page5-right-eye-window {
+      --page5-eye-left: 21.7%;
+      --page5-eye-top: 56%;
+      --page5-eye-size: clamp(170px, 10.5vw, 300px);
+      --page5-eye-shift-x: 0px;
+      --page5-eye-shift-y: 0px;
+      position: absolute;
+      z-index: 8;
+      display: block;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: none;
+      overflow: hidden;
+      -webkit-mask-image: url("outputs/assets/images/page5/kuang1.png?v=alpha-mask-2");
+      mask-image: url("outputs/assets/images/page5/kuang1.png?v=alpha-mask-2");
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
+      -webkit-mask-position: 0 0;
+      mask-position: 0 0;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-mode: alpha;
+      mask-mode: alpha;
+    }
+
+    .page5-right-eye-anchor {
+      position: absolute;
+      left: var(--page5-eye-left);
+      top: var(--page5-eye-top);
+      width: var(--page5-eye-size);
+      height: var(--page5-eye-size);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+
+    .page5-right-eye-ball {
+      display: block;
+      width: 100%;
+      height: 100%;
+      opacity: 1;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+      will-change: transform;
+      transform: translate(
+        var(--page5-eye-shift-x),
+        var(--page5-eye-shift-y)
+      );
+      transition: transform 130ms ease-out;
+    }
+
+    .page5-right-eye-window.is-resting .page5-right-eye-ball {
+      transition-duration: 680ms;
+      transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
     .page4-layer--back {
       z-index: 1;
       opacity: 0;
@@ -757,6 +814,12 @@
       pointer-events: none;
     }
 
+    .loader.is-ready .loader__enter-btn {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
     .loader__bar {
       width: min(320px, 72vw);
       height: 3px;
@@ -786,6 +849,44 @@
       font-weight: 300;
       letter-spacing: 0.08em;
       color: var(--gold);
+    }
+
+    .loader__enter-btn {
+      border: 1px solid var(--gold-dim);
+      border-radius: 999px;
+      padding: 14px 34px;
+      color: var(--gold);
+      font: inherit;
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition:
+        opacity 0.36s ease,
+        transform 0.36s ease,
+        border-color 0.3s ease,
+        background 0.3s ease;
+    }
+
+    .loader__enter-btn:hover {
+      border-color: var(--gold);
+      background: rgba(212, 184, 122, 0.08);
+    }
+
+    .loader__enter-btn span {
+      display: block;
+    }
+
+    .loader__enter-btn span + span {
+      margin-top: 4px;
+      color: rgba(238, 248, 255, 0.78);
+      font-size: 11px;
+      letter-spacing: 0.22em;
     }
 
     .scroll-hint {
@@ -1267,11 +1368,15 @@
     <p class="loader__percent" id="loaderPercent">0%</p>
     <div class="loader__bar"><span id="loaderProgress"></span></div>
     <p class="loader__text" id="loaderText">Loading frames 0 / 450</p>
+    <button class="loader__enter-btn" id="loaderEnterBtn" type="button">
+      <span>进入世界</span>
+      <span>Enter World</span>
+    </button>
   </div>
 
   <canvas id="bgCanvas"></canvas>
   <canvas id="cursor-canvas"></canvas>
-  <audio id="bgAudio" preload="none"></audio>
+  <audio id="bgAudio" preload="auto" loop></audio>
 
   <header class="nav">
     <img class="nav__logo" src="outputs/assets/images/page1/logo.png" alt="URANUSN">
@@ -1648,6 +1753,11 @@
       <div class="page5-scene" aria-hidden="true">
         <div class="page5-frame-layer" id="page5FrameLayer">
           <img class="page5-layer" id="page5FrameImage" src="outputs/assets/images/page5/page5_00.png" alt="">
+        </div>
+        <div class="page5-right-eye-window" id="page5RightEyeWindow">
+          <div class="page5-right-eye-anchor">
+            <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=transparent-eye-2" alt="">
+          </div>
         </div>
       </div>
       <div class="page__content" id="page5Content" aria-hidden="true"></div>
@@ -2125,6 +2235,7 @@
     const loaderProgress = document.getElementById("loaderProgress");
     const loaderText = document.getElementById("loaderText");
     const loaderPercent = document.getElementById("loaderPercent");
+    const loaderEnterBtn = document.getElementById("loaderEnterBtn");
     const navLinks = document.getElementById("navLinks");
     const projectsDropdown = document.getElementById("projectsDropdown");
     const projectsMenuBtn = document.getElementById("projectsMenuBtn");
@@ -2143,7 +2254,8 @@
     const page4PreviewCtx = page4PreviewLayer ? page4PreviewLayer.getContext("2d") : null;
     const page4ScratchMaskCanvas = page4PreviewCtx ? document.createElement("canvas") : null;
     const page4ScratchMaskCtx = page4ScratchMaskCanvas ? page4ScratchMaskCanvas.getContext("2d") : null;
-    const page5FrameImage = document.getElementById("page5FrameImage");
+    const page5Section = document.getElementById("page-5");
+    const page5RightEyeWindow = document.getElementById("page5RightEyeWindow");
     const PAGE2_INDEX = 1;
     const PAGE3_INDEX = 2;
     const PAGE4_INDEX = 3;
@@ -2153,6 +2265,10 @@
     const PAGE4_SCRATCH_BRUSH_STEP = 28;
     const PAGE4_TRAIL_POINT_LIFE = 1120;
     const PAGE4_ENTER_PREVIEW_LIFE = 860;
+    const PAGE5_BG_WIDTH = 5461;
+    const PAGE5_BG_HEIGHT = 3072;
+    const PAGE5_EYE_MAX_X = 6;
+    const PAGE5_EYE_MAX_Y = 1;
 
     const frames = new Array(CONFIG.totalFrames + 1);
     const loadingPromises = new Map();
@@ -2171,11 +2287,14 @@
     let displayedFrame = 1;
     let isShowingPage3Background = false;
     let isReady = false;
+    let hasEnteredWorld = false;
     let lastActiveNode = -1;
     let isPortfolioModalOpen = false;
     let preservedPage2PlaybackState = null;
-    const AUDIO_ENABLED = false;
-    let soundEnabled = false;
+    const AUDIO_ENABLED = true;
+    const BACKGROUND_AUDIO_SRC = "music/Blue Door Silence.MP3";
+    let soundEnabled = true;
+    let audioPlayBlocked = false;
     let page4LastTrailPoint = null;
     let page4PointerInsideBallRegion = false;
     let page4RevealPoints = [];
@@ -2322,7 +2441,7 @@
         isReady = true;
         loaderPercent.textContent = "100%";
         loaderText.textContent = "Ready";
-        setTimeout(() => loader.classList.add("is-hidden"), 600);
+        loader.classList.add("is-ready");
       }
     }
 
@@ -2706,6 +2825,64 @@
       page4PointerInsideBallRegion = isInsideBallRegion;
     }
 
+    function getCoverRect(imgWidth, imgHeight, viewWidth = window.innerWidth, viewHeight = window.innerHeight) {
+      const scale = Math.max(viewWidth / imgWidth, viewHeight / imgHeight);
+      const width = imgWidth * scale;
+      const height = imgHeight * scale;
+      return {
+        left: (viewWidth - width) / 2,
+        top: (viewHeight - height) / 2,
+        width,
+        height,
+      };
+    }
+
+    function updatePage5EyeCoverRect() {
+      if (!page5RightEyeWindow) return;
+      const rect = getCoverRect(PAGE5_BG_WIDTH, PAGE5_BG_HEIGHT);
+      page5RightEyeWindow.style.left = `${rect.left}px`;
+      page5RightEyeWindow.style.top = `${rect.top}px`;
+      page5RightEyeWindow.style.width = `${rect.width}px`;
+      page5RightEyeWindow.style.height = `${rect.height}px`;
+    }
+
+    function setPage5EyeOffset(x = 0, y = 0, isResting = false) {
+      if (!page5RightEyeWindow) return;
+      page5RightEyeWindow.classList.toggle("is-resting", isResting);
+      page5RightEyeWindow.style.setProperty("--page5-eye-shift-x", `${x.toFixed(2)}px`);
+      page5RightEyeWindow.style.setProperty("--page5-eye-shift-y", `${y.toFixed(2)}px`);
+    }
+
+    function resetPage5Eye() {
+      setPage5EyeOffset(0, 0, true);
+    }
+
+    function handlePage5EyePointerMove(event) {
+      if (!page5Section || !page5RightEyeWindow) return;
+      if (getStableActivePageIndex() !== PAGE5_INDEX) {
+        resetPage5Eye();
+        return;
+      }
+
+      updatePage5EyeCoverRect();
+
+      const pageRect = page5Section.getBoundingClientRect();
+      const pointerInsidePage5 = event.clientY >= pageRect.top
+        && event.clientY <= pageRect.bottom
+        && event.clientX >= pageRect.left
+        && event.clientX <= pageRect.right;
+
+      if (!pointerInsidePage5) {
+        resetPage5Eye();
+        return;
+      }
+
+      const rect = page5RightEyeWindow.getBoundingClientRect();
+      const xRatio = clamp((event.clientX - (rect.left + rect.width * 0.5)) / (rect.width * 0.3), -1, 1);
+      const yRatio = clamp((event.clientY - (rect.top + rect.height * 0.56)) / (rect.height * 0.28), -1, 1);
+      setPage5EyeOffset(xRatio * PAGE5_EYE_MAX_X, yRatio * PAGE5_EYE_MAX_Y, false);
+    }
+
     function applyPageContent(el, state, targetOpacity, targetY) {
       state.opacity = lerp(state.opacity, targetOpacity, CONFIG.textTransitionSmooth);
       state.translateY = lerp(state.translateY, targetY, CONFIG.textTransitionSmooth);
@@ -2965,6 +3142,11 @@
     }
 
     function updatePlayback() {
+      if (!hasEnteredWorld) {
+        currentFrame = pagePlayback[lastPageIndex]?.frame ?? currentFrame;
+        return;
+      }
+
       if (isPagePlaybackSuspended()) {
         const suspendedPageIndex = preservedPage2PlaybackState?.activePageIndex ?? lastPageIndex;
 
@@ -2983,6 +3165,14 @@
       if (pageIndex !== lastPageIndex) {
         if (lastPageIndex === PAGE4_INDEX && pageIndex !== PAGE4_INDEX) {
           resetPage4FlipState();
+        }
+
+        if (lastPageIndex === PAGE5_INDEX && pageIndex !== PAGE5_INDEX) {
+          resetPage5Eye();
+        }
+
+        if (pageIndex === PAGE5_INDEX) {
+          updatePage5EyeCoverRect();
         }
 
         if (pageIndex === 0 && pagePlayback[0].done) {
@@ -3032,7 +3222,6 @@
 
     function tick() {
       updatePlayback();
-      syncAudio();
       updateCanvasVisibility();
 
       const activeIndex = getStableActivePageIndex();
@@ -3067,35 +3256,57 @@
 
     function updateSoundToggleUI() {
       if (!AUDIO_ENABLED) {
-        soundToggle.textContent = soundEnabled ? "MUSIC" : "MUTE";
+        soundToggle.textContent = "MUSIC";
         soundToggle.classList.toggle("is-active", soundEnabled);
         return;
       }
 
-      // 按钮显示「点击后的动作」：有声时显示 MUTE，静音时显示 SOUND
-      soundToggle.textContent = soundEnabled ? "MUTE" : "SOUND";
+      soundToggle.textContent = soundEnabled ? "MUTE" : "MUSIC";
       soundToggle.classList.toggle("is-active", soundEnabled);
     }
 
-    function syncAudio() {
-      if (!AUDIO_ENABLED) {
+    function initializeBackgroundAudio() {
+      if (!AUDIO_ENABLED || !bgAudio) return;
+      bgAudio.src = BACKGROUND_AUDIO_SRC;
+      bgAudio.loop = true;
+      bgAudio.preload = "auto";
+      bgAudio.muted = false;
+      bgAudio.volume = 1;
+    }
+
+    function syncAudio(forceAttempt = false) {
+      if (!AUDIO_ENABLED || !bgAudio) return;
+      if (!hasEnteredWorld) return;
+
+      if (!soundEnabled) {
         bgAudio.pause();
+        bgAudio.muted = true;
         return;
       }
 
-      if (!soundEnabled || !isVideoPage(getActivePageIndex())) {
-        bgAudio.pause();
-        return;
-      }
+      bgAudio.muted = false;
+      if (!bgAudio.paused) return;
+      if (audioPlayBlocked && !forceAttempt) return;
 
-      const targetTime = (currentFrame - 1) / CONFIG.fps;
-      if (Math.abs(bgAudio.currentTime - targetTime) > 0.12) {
-        bgAudio.currentTime = targetTime;
+      const playPromise = bgAudio.play();
+      if (playPromise && typeof playPromise.then === "function") {
+        playPromise
+          .then(() => {
+            audioPlayBlocked = false;
+          })
+          .catch(() => {
+            audioPlayBlocked = true;
+          });
       }
+    }
 
-      if (bgAudio.paused) {
-        bgAudio.play().catch(() => {});
-      }
+    function enterWorld() {
+      if (!isReady || hasEnteredWorld) return;
+      hasEnteredWorld = true;
+      loader.classList.add("is-hidden");
+      soundEnabled = true;
+      updateSoundToggleUI();
+      syncAudio(true);
     }
 
     navLinks.addEventListener("click", (event) => {
@@ -3147,12 +3358,20 @@
       });
     }
 
+    if (page5RightEyeWindow) {
+      window.addEventListener("pointermove", handlePage5EyePointerMove, { passive: true });
+      window.addEventListener("pointerleave", resetPage5Eye);
+      window.addEventListener("blur", resetPage5Eye);
+    }
+
     soundToggle.addEventListener("click", (event) => {
       event.preventDefault();
       soundEnabled = !soundEnabled;
       updateSoundToggleUI();
-      syncAudio();
+      syncAudio(true);
     });
+
+    loaderEnterBtn.addEventListener("click", enterWorld);
 
     /* ═══════════════════════════════════════════
        Personal Introduction 羊皮纸弹窗（全局层）
@@ -3374,15 +3593,16 @@
        ═══════════════════════════════════════════ */
     resizeCanvas();
     resizePage4PreviewCanvas();
+    initializeBackgroundAudio();
     updateSoundToggleUI();
     window.addEventListener("resize", () => {
       resizeCanvas();
       resizePage4PreviewCanvas();
       resizeCursorCanvas();
+      updatePage5EyeCoverRect();
     });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("pointerdown", () => syncAudio(), { once: true });
 
     requestAnimationFrame(tick);
     ensurePage3Background();
@@ -3400,7 +3620,6 @@
       lastPageIndex = 0;
       currentFrame = 1;
       renderFrame(currentFrame);
-      syncAudio();
     });
 
     /*
