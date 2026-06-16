@@ -220,6 +220,10 @@
       z-index: 0;
     }
 
+    .page-turn-stage .page5-right-eye-window {
+      z-index: 2;
+    }
+
     .page-turn-stage::after {
       content: "";
       position: absolute;
@@ -348,7 +352,7 @@
       pointer-events: none;
       animation: page5-scene-breathe 8s ease-in-out infinite;
       transform-origin: center center;
-      will-change: transform;
+      will-change: transform, opacity, filter;
     }
 
     .page5-frame-layer {
@@ -2055,6 +2059,13 @@
   <p class="scroll-hint" id="scrollHint">Scroll to explore</p>
   <div class="page-turn-stage" id="pageTurnStage" aria-hidden="true">
     <img class="page-turn-stage__image" id="pageTurnStageImage" src="outputs/assets/images/page5/page5_00.png" alt="">
+    <div class="page5-right-eye-window page-turn-eye-window" id="pageTurnEyeWindow">
+      <div class="page5-right-eye-anchor">
+        <div class="page5-eye-bottom-shadow" aria-hidden="true"></div>
+        <div class="page5-eye-shadow" aria-hidden="true"></div>
+        <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=eye-restored-1" alt="">
+      </div>
+    </div>
   </div>
   <div class="page-turn-curl" id="pageTurnCurl" aria-hidden="true"></div>
 
@@ -2554,6 +2565,7 @@
     const page5Scene = document.querySelector(".page5-scene");
     const page5RightEyeWindow = document.getElementById("page5RightEyeWindow");
     const page5SecondEyeWindow = document.getElementById("page5SecondEyeWindow");
+    const pageTurnEyeWindow = document.getElementById("pageTurnEyeWindow");
     const PAGE1_INDEX = 0;
     const PAGE2_INDEX = 1;
     const PAGE3_INDEX = 2;
@@ -3254,9 +3266,9 @@
     }
 
     function updatePage5EyeCoverRect() {
-      if (!page5RightEyeWindow && !page5SecondEyeWindow) return;
+      if (!page5RightEyeWindow && !page5SecondEyeWindow && !pageTurnEyeWindow) return;
       const rect = getCoverRect(PAGE5_BG_WIDTH, PAGE5_BG_HEIGHT);
-      [page5RightEyeWindow, page5SecondEyeWindow].forEach((eyeWindow) => {
+      [page5RightEyeWindow, page5SecondEyeWindow, pageTurnEyeWindow].forEach((eyeWindow) => {
         if (!eyeWindow) return;
         eyeWindow.style.left = `${rect.left}px`;
         eyeWindow.style.top = `${rect.top}px`;
@@ -3266,7 +3278,7 @@
     }
 
     function setPage5EyeOffset(x = 0, y = 0, isResting = false) {
-      [page5RightEyeWindow, page5SecondEyeWindow].forEach((eyeWindow) => {
+      [page5RightEyeWindow, page5SecondEyeWindow, pageTurnEyeWindow].forEach((eyeWindow) => {
         if (!eyeWindow) return;
         eyeWindow.classList.toggle("is-resting", isResting);
         eyeWindow.style.setProperty("--page5-eye-shift-x", `${x.toFixed(2)}px`);
@@ -3448,6 +3460,7 @@
         page5Scene.style.clipPath = "";
         page5Scene.style.webkitClipPath = "";
         page5Scene.style.opacity = "";
+        page5Scene.style.filter = "";
       }
     }
 
@@ -3457,18 +3470,33 @@
 
       resetPageTurn();
       pageTurnStage.classList.add("is-dissolving");
+      if (page5Scene) {
+        page5Scene.style.opacity = "0";
+        page5Scene.style.filter = "blur(8px) brightness(0.88)";
+      }
 
       if (!window.gsap) {
         pageTurnStage.style.opacity = "1";
         pageTurnStage.style.visibility = "visible";
         pageTurnStage.animate(
           [
-            { opacity: 0, transform: "scale(1.075)", filter: "blur(12px) brightness(0.72)" },
-            { opacity: 0.52, transform: "scale(1.038)", filter: "blur(5px) brightness(0.9)" },
-            { opacity: 1, transform: "scale(1)", filter: "blur(0px) brightness(1)" },
+            { offset: 0, opacity: 0, transform: "scale(1.075)", filter: "blur(12px) brightness(0.72)" },
+            { offset: 0.48, opacity: 0.72, transform: "scale(1.038)", filter: "blur(5px) brightness(0.9)" },
+            { offset: 1, opacity: 1, transform: "scale(1)", filter: "blur(0px) brightness(1)" },
           ],
           { duration: PAGE_TURN_DURATION_MS, easing: "cubic-bezier(0.32, 0, 0.12, 1)", fill: "forwards" }
         ).onfinish = () => resetPageTurn(false);
+
+        if (page5Scene) {
+          page5Scene.animate(
+            [
+              { offset: 0, opacity: 0, filter: "blur(8px) brightness(0.88)" },
+              { offset: 0.88, opacity: 0, filter: "blur(8px) brightness(0.88)" },
+              { offset: 1, opacity: 1, filter: "blur(0px) brightness(1)" },
+            ],
+            { duration: PAGE_TURN_DURATION_MS, easing: "cubic-bezier(0.32, 0, 0.12, 1)", fill: "forwards" }
+          );
+        }
 
         if (page4Scene) {
           page4Scene.animate(
@@ -3498,6 +3526,10 @@
         scale: 1.04,
         filter: "brightness(0.84) saturate(1.06)",
       });
+      gsap.set(page5Scene, {
+        opacity: 0,
+        filter: "blur(8px) brightness(0.88)",
+      });
 
       pageTurnTimeline
         .to(pageTurnStage, {
@@ -3511,6 +3543,11 @@
           filter: "brightness(1) saturate(1)",
           duration: PAGE_TURN_DURATION_SEC,
         }, 0)
+        .to(page5Scene, {
+          opacity: 1,
+          filter: "blur(0px) brightness(1)",
+          duration: PAGE_TURN_DURATION_SEC * 0.14,
+        }, PAGE_TURN_DURATION_SEC * 0.86)
         .to(page4Scene, {
           opacity: 0.32,
           scale: 1.055,
