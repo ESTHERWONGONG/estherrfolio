@@ -2456,7 +2456,7 @@
     visualRenderId = renderId;
     modalVisual.innerHTML = "";
     modalVisual.style.backgroundImage = "";
-    modalVisual.classList.remove("has-video", "has-pdf");
+    modalVisual.classList.remove("has-video", "has-pdf", "is-loading", "is-empty");
 
     if (page.videoEmbed) {
       modalVisual.classList.add("has-video");
@@ -2476,14 +2476,24 @@
     }
 
     if (page.visual) {
+      modalVisual.classList.add("is-loading");
       preloadImage(page.visual, page.visualRev).then(function (url) {
-        if (!url || renderId !== visualRenderId) {
+        if (renderId !== visualRenderId) {
+          return;
+        }
+
+        modalVisual.classList.remove("is-loading");
+        if (!url) {
+          modalVisual.classList.add("is-empty");
           return;
         }
 
         modalVisual.style.backgroundImage = "url(\"" + url + "\")";
       });
+      return;
     }
+
+    modalVisual.classList.add("is-empty");
   }
 
   function canTurnPage() {
