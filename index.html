@@ -226,6 +226,7 @@
 
     .page-turn-stage .page5-second-eye-window {
       z-index: 2;
+      pointer-events: none;
     }
 
     .page-turn-stage::after {
@@ -467,7 +468,7 @@
     .page5-second-eye-window {
       --page5-eye-left: 83.39%;
       --page5-eye-top: 51.6%;
-      --page5-eye-size: clamp(206px, 12.7vw, 363px);
+      --page5-eye-size: clamp(216px, 13.34vw, 381px);
       --page5-eye-shift-x: 0px;
       --page5-eye-shift-y: 0px;
       position: absolute;
@@ -475,7 +476,7 @@
       display: block;
       visibility: visible;
       opacity: 1;
-      pointer-events: none;
+      pointer-events: auto;
       overflow: hidden;
       background: transparent;
       outline: none;
@@ -2122,7 +2123,7 @@
             <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=eye-restored-1" alt="">
           </div>
         </div>
-        <div class="page5-second-eye-window" id="page5SecondEyeWindow">
+        <div class="page5-second-eye-window" id="page5SecondEyeWindow" data-cursor-hover>
           <div class="page5-right-eye-anchor">
             <div class="page5-eye-bottom-shadow" aria-hidden="true"></div>
             <div class="page5-eye-shadow" aria-hidden="true"></div>
@@ -4066,6 +4067,15 @@
       window.addEventListener("pointermove", handlePage5EyePointerMove, { passive: true });
       window.addEventListener("pointerleave", resetPage5Eye);
       window.addEventListener("blur", resetPage5Eye);
+    }
+
+    if (page5SecondEyeWindow) {
+      page5SecondEyeWindow.addEventListener("click", (event) => {
+        if (getStableActivePageIndex() !== PAGE5_INDEX) return;
+        event.preventDefault();
+        event.stopPropagation();
+        openOtherProjectsModal();
+      });
     }
 
     soundToggle.addEventListener("click", (event) => {
