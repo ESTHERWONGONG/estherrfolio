@@ -358,6 +358,11 @@
       animation: page5-scene-breathe 8s ease-in-out infinite;
       transform-origin: center center;
       will-change: transform, opacity, filter;
+      transition: filter 360ms ease;
+    }
+
+    .page5-scene.is-eye-entry-hovered {
+      filter: brightness(0.84) saturate(0.94);
     }
 
     .page5-frame-layer {
@@ -544,6 +549,28 @@
         calc(-50% + var(--page5-eye-shift-y))
       );
       transition: transform 130ms ease-out;
+    }
+
+    .page5-second-eye-window .page5-eye-bottom-shadow {
+      top: calc(50% + 4%);
+      width: 106%;
+      height: 96%;
+      background: rgba(0, 0, 0, 0.45);
+      filter: blur(3px);
+    }
+
+    .page5-second-eye-window .page5-right-eye-ball {
+      transition: transform 130ms ease-out, filter 260ms ease;
+    }
+
+    .page5-second-eye-window.is-eye-entry-hovered .page5-right-eye-ball {
+      filter: brightness(1.32) drop-shadow(0 0 24px rgba(137, 206, 255, 0.68));
+      transform:
+        translate(
+          var(--page5-eye-shift-x),
+          var(--page5-eye-shift-y)
+        )
+        scale(1.035);
     }
 
     .page5-eye-shadow {
@@ -1380,16 +1407,78 @@
       display: none;
     }
 
-    .other-projects-modal .pt-modal-visual {
-      background-image: url("./assets/p2/p2_004.png");
+    .other-projects-modal .pt-modal-grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "gallery";
     }
 
-    .other-projects-modal .pt-modal-intro {
-      max-width: 40rem;
+    .other-projects-gallery {
+      grid-area: gallery;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 16vw, 260px), 1fr));
+      gap: clamp(0.75rem, 1.2vw, 1.2rem);
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 0.35rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 206, 148, 0.48) rgba(255, 206, 148, 0.12);
     }
 
-    .other-projects-modal .pt-modal-subtitle {
-      white-space: pre-line;
+    .other-projects-gallery::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .other-projects-gallery::-webkit-scrollbar-track {
+      background: rgba(255, 206, 148, 0.12);
+      border-radius: 999px;
+    }
+
+    .other-projects-gallery::-webkit-scrollbar-thumb {
+      background: rgba(255, 206, 148, 0.48);
+      border-radius: 999px;
+    }
+
+    .other-project-card {
+      position: relative;
+      display: grid;
+      min-height: clamp(220px, 30vw, 430px);
+      overflow: hidden;
+      border: 1px solid rgba(255, 206, 148, 0.28);
+      background: rgba(255, 206, 148, 0.035);
+      box-shadow: 0 24px 70px rgba(255, 206, 148, 0.06);
+    }
+
+    .other-project-card::before {
+      content: "loading";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: rgba(255, 206, 148, 0.72);
+      font-family: Arial, "Helvetica Neue", sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+    }
+
+    .other-project-card.is-loaded::before {
+      display: none;
+    }
+
+    .other-project-card img {
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
+      display: block;
+      object-fit: cover;
+      opacity: 0;
+      transform: scale(1.015);
+      transition: opacity 0.36s ease, transform 0.5s ease;
+    }
+
+    .other-project-card.is-loaded img {
+      opacity: 1;
+      transform: scale(1);
     }
 
     .intro-modal__sidebar,
@@ -1698,7 +1787,7 @@
         <a href="#" id="projectsMenuBtn" aria-haspopup="true" aria-expanded="false">PROJECTS</a>
         <div class="nav__dropdown-menu" id="projectsDropdownMenu" aria-label="Projects submenu">
           <a href="#" data-node="1">UX PROJECTS</a>
-          <a href="#" id="otherProjectsEntry">OTHER PROJECTS</a>
+          <a href="#" data-node="4">OTHERS</a>
         </div>
       </li>
       <li class="nav__sep" aria-hidden="true">
@@ -1947,47 +2036,13 @@
             <header class="pt-modal-topbar">
               <div class="pt-modal-topbar-visual"></div>
               <div class="pt-modal-topbar-main">
-                <p class="pt-modal-year">Other Projects</p>
+                <p class="pt-modal-year" id="other-projects-title">Other Projects</p>
                 <button class="pt-close" type="button" data-other-projects-close aria-label="关闭 Other Projects 页面">×</button>
               </div>
             </header>
 
             <div class="pt-modal-grid">
-              <div class="pt-modal-visual-wrap">
-                <div class="pt-modal-visual-stage">
-                  <div class="pt-modal-visual is-loading" aria-hidden="true"></div>
-                </div>
-              </div>
-              <div class="pt-modal-content">
-                <h2 id="other-projects-title">其他项目<br><span>Other Projects</span></h2>
-                <p class="pt-modal-subtitle">独立作品 / 视觉实验 / 其他项目入口</p>
-                <div class="pt-intro-scroll">
-                  <div class="pt-modal-intro">
-                    这里先作为 Other Projects 的二级页面占位，版式完全沿用 page2 项目详情页的帝国之地视觉结构。
-
-                    后续可以继续往这里放摄影、LATA、概念实验、独立网页或其他非 UX 主线项目。
-                  </div>
-                </div>
-
-                <div class="pt-detail-list">
-                  <div>
-                    <h3>Category</h3>
-                    <p>Other Works / Visual Experiments</p>
-                  </div>
-                  <div>
-                    <h3>Status</h3>
-                    <p>入口页模板已建立，可继续扩展具体项目。</p>
-                  </div>
-                  <div>
-                    <h3>Layout</h3>
-                    <p>参考 page2 项目详情页结构。</p>
-                  </div>
-                  <div>
-                    <h3>Next</h3>
-                    <p>可替换封面、增加项目列表或跳转入口。</p>
-                  </div>
-                </div>
-              </div>
+              <div class="other-projects-gallery" id="otherProjectsGallery" aria-live="polite"></div>
             </div>
           </div>
         </section>
@@ -2123,7 +2178,7 @@
             <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=eye-restored-1" alt="">
           </div>
         </div>
-        <div class="page5-second-eye-window" id="page5SecondEyeWindow" data-cursor-hover>
+        <div class="page5-second-eye-window" id="page5SecondEyeWindow" role="button" tabindex="0" aria-label="Open Other Projects" data-cursor-hover>
           <div class="page5-right-eye-anchor">
             <div class="page5-eye-bottom-shadow" aria-hidden="true"></div>
             <div class="page5-eye-shadow" aria-hidden="true"></div>
@@ -2636,9 +2691,7 @@
     const otherProjectsCloseControls = otherProjectsModal
       ? Array.from(otherProjectsModal.querySelectorAll("[data-other-projects-close]"))
       : [];
-    const otherProjectsVisual = otherProjectsModal
-      ? otherProjectsModal.querySelector(".pt-modal-visual")
-      : null;
+    const otherProjectsGallery = document.getElementById("otherProjectsGallery");
     const pageTurnStage = document.getElementById("pageTurnStage");
     const pageTurnStageImage = document.getElementById("pageTurnStageImage");
     const pageTurnCurl = document.getElementById("pageTurnCurl");
@@ -2679,6 +2732,28 @@
     const PAGE1_SCRUB_END_FRAME = 80;
     const PAGE1_SCRUB_REWIND_MAX_FRAME = 100;
     const PAGE1_SCRUB_WHEEL_TO_FRAME = 0.12;
+    const OTHER_PROJECT_ASSETS = {
+      graphic: [
+        "outputs/assets/images/others/poster/01.png",
+        "outputs/assets/images/others/poster/02.png",
+        "outputs/assets/images/others/poster/03.png",
+        "outputs/assets/images/others/poster/04.png",
+        "outputs/assets/images/others/poster/05.png",
+      ],
+      photography: [
+        "outputs/assets/images/others/photo/ph_01.jpeg",
+        "outputs/assets/images/others/photo/ph_02.jpeg",
+        "outputs/assets/images/others/photo/ph_03.jpeg",
+        "outputs/assets/images/others/photo/ph_04.jpeg",
+        "outputs/assets/images/others/photo/ph_05.jpeg",
+        "outputs/assets/images/others/photo/ph_06.jpg",
+        "outputs/assets/images/others/photo/ph_07.jpg",
+        "outputs/assets/images/others/photo/ph_08.jpg",
+        "outputs/assets/images/others/photo/ph_10.jpg",
+        "outputs/assets/images/others/photo/ph_11.jpg",
+        "outputs/assets/images/others/photo/ph_12.jpg",
+      ],
+    };
 
     const frames = new Array(CONFIG.totalFrames + 1);
     const loadingPromises = new Map();
@@ -2706,7 +2781,7 @@
     let lastActiveNode = -1;
     let isPortfolioModalOpen = false;
     let otherProjectsModalOpen = false;
-    let otherProjectsVisualReady = false;
+    let otherProjectsGalleryRendered = false;
     let preservedPage2PlaybackState = null;
     const AUDIO_ENABLED = true;
     const BACKGROUND_AUDIO_SRC = "music/Blue Door Silence.MP3";
@@ -3385,6 +3460,14 @@
 
     function resetPage5Eye() {
       setPage5EyeOffset(0, 0, true);
+      setPage5EyeEntryHover(false);
+    }
+
+    function setPage5EyeEntryHover(isHovered) {
+      if (!page5SecondEyeWindow || !page5Scene) return;
+      const shouldShowHint = isHovered && getStableActivePageIndex() === PAGE5_INDEX;
+      page5SecondEyeWindow.classList.toggle("is-eye-entry-hovered", shouldShowHint);
+      page5Scene.classList.toggle("is-eye-entry-hovered", shouldShowHint);
     }
 
     function handlePage5EyePointerMove(event) {
@@ -3944,6 +4027,33 @@
       startSectionScroll(index);
     }
 
+    function jumpToUxProjects() {
+      const node = NODES[PAGE2_INDEX];
+      const targetY = Math.round(PAGE2_INDEX * window.innerHeight);
+
+      if (scrollTweenFrame !== null) {
+        window.cancelAnimationFrame(scrollTweenFrame);
+        scrollTweenFrame = null;
+      }
+
+      resetPageTurn();
+      clearWheelGestureLock();
+      isScrollLocked = false;
+      isSectionScrolling = false;
+      targetPageIndex = null;
+      pagePlayback[PAGE2_INDEX].frame = node.endFrame;
+      pagePlayback[PAGE2_INDEX].done = true;
+      currentFrame = node.endFrame;
+      displayedFrame = -1;
+      window.scrollTo(0, targetY);
+      lastScrollY = targetY;
+      lastPageIndex = PAGE2_INDEX;
+      renderFrame(node.endFrame);
+      snapPageContentToIndex(PAGE2_INDEX);
+      updateCanvasVisibility();
+      updateContentUI();
+    }
+
     function setProjectsDropdownOpen(isOpen) {
       if (!projectsDropdown || !projectsMenuBtn) return;
       projectsDropdown.classList.toggle("is-open", isOpen);
@@ -4013,20 +4123,16 @@
         return;
       }
 
-      const otherProjectsEntry = event.target.closest("#otherProjectsEntry");
-      if (otherProjectsEntry) {
-        event.preventDefault();
-        setProjectsDropdownOpen(false);
-        scrollHint.style.opacity = "0";
-        openOtherProjectsModal();
-        return;
-      }
-
       const link = event.target.closest("a[data-node]");
       if (!link) return;
       event.preventDefault();
       setProjectsDropdownOpen(false);
-      jumpToNode(Number(link.dataset.node));
+      const nodeIndex = Number(link.dataset.node);
+      if (nodeIndex === PAGE2_INDEX) {
+        jumpToUxProjects();
+        return;
+      }
+      jumpToNode(nodeIndex);
     });
 
     document.addEventListener("click", (event) => {
@@ -4070,10 +4176,22 @@
     }
 
     if (page5SecondEyeWindow) {
+      page5SecondEyeWindow.addEventListener("pointerenter", () => {
+        setPage5EyeEntryHover(true);
+      });
+      page5SecondEyeWindow.addEventListener("pointerleave", () => {
+        setPage5EyeEntryHover(false);
+      });
       page5SecondEyeWindow.addEventListener("click", (event) => {
         if (getStableActivePageIndex() !== PAGE5_INDEX) return;
         event.preventDefault();
         event.stopPropagation();
+        openOtherProjectsModal();
+      });
+      page5SecondEyeWindow.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        if (getStableActivePageIndex() !== PAGE5_INDEX) return;
+        event.preventDefault();
         openOtherProjectsModal();
       });
     }
@@ -4118,22 +4236,37 @@
       window.scrollTo(0, savedScrollY);
     }
 
-    function prepareOtherProjectsVisual() {
-      if (!otherProjectsVisual || otherProjectsVisualReady) return;
+    function renderOtherProjectsGallery(force = false) {
+      if (!otherProjectsGallery || (otherProjectsGalleryRendered && !force)) return;
 
-      otherProjectsVisual.classList.add("is-loading");
-      otherProjectsVisual.classList.remove("is-empty");
+      otherProjectsGalleryRendered = true;
+      otherProjectsGallery.innerHTML = "";
 
-      const image = new Image();
-      image.onload = () => {
-        otherProjectsVisualReady = true;
-        otherProjectsVisual.classList.remove("is-loading", "is-empty");
-      };
-      image.onerror = () => {
-        otherProjectsVisual.classList.remove("is-loading");
-        otherProjectsVisual.classList.add("is-empty");
-      };
-      image.src = "./assets/p2/p2_004.png";
+      const selectedItems = Object.entries(OTHER_PROJECT_ASSETS)
+        .flatMap(([category, assets]) => assets.map((src) => ({ category, src })));
+
+      selectedItems.forEach((item, index) => {
+        const card = document.createElement("figure");
+        card.className = "other-project-card";
+        card.dataset.otherProjectCategory = item.category;
+
+        const image = document.createElement("img");
+        image.alt = item.category === "graphic"
+          ? `Graphic work ${index + 1}`
+          : `Photography work ${index + 1}`;
+        image.loading = "lazy";
+        image.decoding = "async";
+        image.onload = () => {
+          card.classList.add("is-loaded");
+        };
+        image.onerror = () => {
+          card.classList.add("is-empty");
+        };
+        image.src = item.src;
+
+        card.appendChild(image);
+        otherProjectsGallery.appendChild(card);
+      });
     }
 
     function openOtherProjectsModal() {
@@ -4141,7 +4274,7 @@
 
       preservePage2PlaybackState(window.scrollY);
       otherProjectsModalOpen = true;
-      prepareOtherProjectsVisual();
+      renderOtherProjectsGallery();
       otherProjectsModal.classList.add("is-open");
       otherProjectsModal.setAttribute("aria-hidden", "false");
       lockBodyScroll();
