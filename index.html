@@ -2754,8 +2754,8 @@
     const PAGE5_EYE_MAX_Y = 1;
     const PAGE1_SCRUB_START_FRAME = 1;
     const PAGE1_SCRUB_END_FRAME = 80;
-    const PAGE1_SCRUB_REWIND_MAX_FRAME = 100;
     const PAGE1_SCRUB_WHEEL_TO_FRAME = 0.12;
+    const PAGE1_SCRUB_MOMENTUM_COOLDOWN_MS = 520;
     const OTHER_PROJECT_ASSETS = {
       graphic: [
         "outputs/assets/images/others/poster/01.png",
@@ -2802,6 +2802,7 @@
     let hasEnteredWorld = false;
     let page1IntroScrubFrame = PAGE1_SCRUB_START_FRAME;
     let page1IntroScrubDone = false;
+    let page1ScrubMomentumLockedUntil = 0;
     let lastActiveNode = -1;
     let isPortfolioModalOpen = false;
     let otherProjectsModalOpen = false;
@@ -2893,7 +2894,15 @@
       const pb = pagePlayback[PAGE1_INDEX];
       if (pb.done) return false;
       if (!page1IntroScrubDone) return true;
-      return deltaY < 0 && pb.frame <= PAGE1_SCRUB_REWIND_MAX_FRAME;
+      return deltaY < 0;
+    }
+
+    function isPage1ScrubMomentumLocked() {
+      return performance.now() < page1ScrubMomentumLockedUntil;
+    }
+
+    function lockPage1ScrubMomentum() {
+      page1ScrubMomentumLockedUntil = performance.now() + PAGE1_SCRUB_MOMENTUM_COOLDOWN_MS;
     }
 
     function syncPage1IntroScrubFrame() {
@@ -2910,11 +2919,12 @@
 
     function handlePage1IntroScrub(deltaY) {
       if (!canHandlePage1IntroScrub(deltaY)) return false;
+      const wasScrubDone = page1IntroScrubDone;
 
       if (page1IntroScrubDone && deltaY < 0) {
         page1IntroScrubDone = false;
         page1IntroScrubFrame = clamp(
-          pagePlayback[PAGE1_INDEX].frame,
+          Math.min(pagePlayback[PAGE1_INDEX].frame, PAGE1_SCRUB_END_FRAME),
           PAGE1_SCRUB_START_FRAME,
           PAGE1_SCRUB_END_FRAME
         );
@@ -2929,6 +2939,9 @@
       if (page1IntroScrubFrame >= PAGE1_SCRUB_END_FRAME - 0.01) {
         page1IntroScrubDone = true;
         pagePlayback[PAGE1_INDEX].frame = PAGE1_SCRUB_END_FRAME;
+        if (!wasScrubDone && deltaY > 0) {
+          lockPage1ScrubMomentum();
+        }
       }
 
       syncPage1IntroScrubFrame();
@@ -3901,6 +3914,14 @@
         return;
       }
 
+      if (
+        deltaY > 0
+        && getStableActivePageIndex() === PAGE1_INDEX
+        && isPage1ScrubMomentumLocked()
+      ) {
+        return;
+      }
+
       if (Math.abs(deltaY) <= Math.abs(deltaX) || Math.abs(deltaY) < WHEEL_DELTA_THRESHOLD) {
         return;
       }
@@ -3911,6 +3932,13 @@
 
       if (targetIndex === currentIndex) {
         return;
+      }
+
+      if (currentIndex === PAGE1_INDEX && targetIndex === PAGE2_INDEX && page1IntroScrubDone) {
+        const page1Node = NODES[PAGE1_INDEX];
+        pagePlayback[PAGE1_INDEX].frame = page1Node.endFrame;
+        pagePlayback[PAGE1_INDEX].done = true;
+        page1IntroScrubFrame = PAGE1_SCRUB_END_FRAME;
       }
 
       startSectionScroll(targetIndex);
