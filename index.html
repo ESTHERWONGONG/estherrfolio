@@ -96,6 +96,12 @@
       height: 100dvh;
       z-index: 0;
       pointer-events: none;
+      transform-origin: center center;
+    }
+
+    #bgCanvas.is-page3-breathe {
+      animation: page3-canvas-breathe 7.5s ease-in-out infinite;
+      will-change: transform;
     }
 
     #cursor-canvas {
@@ -138,6 +144,30 @@
     #page-5 {
       background: #000;
       overflow: hidden;
+    }
+
+    .page-turn-curl {
+      position: fixed;
+      top: 0;
+      right: -34vw;
+      bottom: 0;
+      z-index: 12;
+      width: min(34vw, 420px);
+      opacity: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(
+          90deg,
+          rgba(255, 244, 216, 0) 0%,
+          rgba(255, 236, 190, 0.24) 22%,
+          rgba(255, 250, 236, 0.7) 46%,
+          rgba(38, 26, 18, 0.36) 69%,
+          rgba(0, 0, 0, 0) 100%
+        );
+      filter: blur(0.4px);
+      mix-blend-mode: screen;
+      transform: translate3d(0, 0, 0) skewX(-8deg);
+      will-change: opacity, transform;
     }
 
     /* 视频页强制停住，避免滚过导致第三段 10–15s 动画未播放 */
@@ -192,6 +222,9 @@
       isolation: isolate;
       z-index: 1;
       pointer-events: auto;
+      animation: page4-scene-breathe 8.5s ease-in-out infinite;
+      transform-origin: center center;
+      will-change: transform;
     }
 
     .page4-layer {
@@ -211,6 +244,9 @@
       inset: 0;
       z-index: 1;
       pointer-events: none;
+      animation: page5-scene-breathe 8s ease-in-out infinite;
+      transform-origin: center center;
+      will-change: transform;
     }
 
     .page5-frame-layer {
@@ -230,6 +266,47 @@
       user-select: none;
       -webkit-user-drag: none;
       pointer-events: none;
+    }
+
+    @keyframes page5-scene-breathe {
+      0%,
+      100% {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+
+      25% {
+        transform: translate3d(-0.28vw, 0, 0) scale(1.009);
+      }
+
+      50% {
+        transform: translate3d(0.24vw, 0, 0) scale(1.018);
+      }
+
+      75% {
+        transform: translate3d(-0.16vw, 0, 0) scale(1.009);
+      }
+    }
+
+    @keyframes page4-scene-breathe {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.008);
+      }
+    }
+
+    @keyframes page3-canvas-breathe {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.02);
+      }
     }
 
     .page5-right-eye-window {
@@ -297,6 +374,8 @@
     }
 
     .page5-right-eye-ball {
+      position: relative;
+      z-index: 2;
       display: block;
       width: 100%;
       height: 100%;
@@ -313,8 +392,54 @@
       transition: transform 130ms ease-out;
     }
 
+    .page5-eye-bottom-shadow {
+      position: absolute;
+      z-index: 1;
+      left: 50%;
+      top: calc(50% + 0.5mm);
+      width: calc(100% + 1mm);
+      height: calc(100% + 1mm);
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.45);
+      filter: blur(3px);
+      pointer-events: none;
+      transform: translate(
+        calc(-50% + var(--page5-eye-shift-x)),
+        calc(-50% + var(--page5-eye-shift-y))
+      );
+      transition: transform 130ms ease-out;
+    }
+
+    .page5-eye-shadow {
+      position: absolute;
+      z-index: 3;
+      left: 50%;
+      top: calc(50% - 0.5mm);
+      width: calc(100% + 1mm);
+      height: calc(100% + 1mm);
+      border-radius: 50%;
+      background:
+        radial-gradient(
+          ellipse at 50% 2%,
+          rgba(0, 0, 0, 0.54) 0%,
+          rgba(0, 0, 0, 0.46) 18%,
+          rgba(0, 0, 0, 0.24) 34%,
+          rgba(0, 0, 0, 0) 54%
+        );
+      filter: blur(1px);
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      transform: translate(
+        calc(-50% + var(--page5-eye-shift-x)),
+        calc(-50% + var(--page5-eye-shift-y))
+      );
+      transition: transform 130ms ease-out;
+    }
+
     .page5-right-eye-window.is-resting .page5-right-eye-ball,
-    .page5-second-eye-window.is-resting .page5-right-eye-ball {
+    .page5-second-eye-window.is-resting .page5-right-eye-ball,
+    .page5-right-eye-window.is-resting .page5-eye-bottom-shadow,
+    .page5-right-eye-window.is-resting .page5-eye-shadow {
       transition-duration: 680ms;
       transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     }
@@ -1790,6 +1915,8 @@
         </div>
         <div class="page5-right-eye-window" id="page5RightEyeWindow">
           <div class="page5-right-eye-anchor">
+            <div class="page5-eye-bottom-shadow" aria-hidden="true"></div>
+            <div class="page5-eye-shadow" aria-hidden="true"></div>
             <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=eye-restored-1" alt="">
           </div>
         </div>
@@ -1806,6 +1933,7 @@
   </main>
 
   <p class="scroll-hint" id="scrollHint">Scroll to explore</p>
+  <div class="page-turn-curl" id="pageTurnCurl" aria-hidden="true"></div>
 
   <div id="introModal" class="intro-modal" hidden aria-hidden="true">
     <div class="intro-modal__shader" aria-hidden="true"></div>
@@ -2189,6 +2317,7 @@
     </div>
   </div>
 
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script>
     /* ═══════════════════════════════════════════
        可调参数 CONFIG
@@ -2283,6 +2412,7 @@
     const soundToggle = document.getElementById("soundToggle");
     const bgAudio = document.getElementById("bgAudio");
     const scrollHint = document.getElementById("scrollHint");
+    const pageTurnCurl = document.getElementById("pageTurnCurl");
     const page4Scene = document.querySelector(".page4-scene");
     const page4BackLayer = document.querySelector(".page4-layer--back");
     const page4FrontLayer = document.querySelector(".page4-layer--front");
@@ -2296,6 +2426,7 @@
     const page4ScratchMaskCanvas = page4PreviewCtx ? document.createElement("canvas") : null;
     const page4ScratchMaskCtx = page4ScratchMaskCanvas ? page4ScratchMaskCanvas.getContext("2d") : null;
     const page5Section = document.getElementById("page-5");
+    const page5Scene = document.querySelector(".page5-scene");
     const page5RightEyeWindow = document.getElementById("page5RightEyeWindow");
     const page5SecondEyeWindow = document.getElementById("page5SecondEyeWindow");
     const PAGE2_INDEX = 1;
@@ -2309,7 +2440,7 @@
     const PAGE4_ENTER_PREVIEW_LIFE = 860;
     const PAGE5_BG_WIDTH = 5461;
     const PAGE5_BG_HEIGHT = 3072;
-    const PAGE5_EYE_MAX_X = 6;
+    const PAGE5_EYE_MAX_X = 11;
     const PAGE5_EYE_MAX_Y = 1;
 
     const frames = new Array(CONFIG.totalFrames + 1);
@@ -2449,6 +2580,9 @@
 
     function updateCanvasVisibility() {
       const activeIndex = getStableActivePageIndex();
+      if (activeIndex !== PAGE3_INDEX || !pagePlayback[PAGE3_INDEX].done) {
+        setPage3CanvasBreathe(false);
+      }
       const onStaticPage = !isVideoPage(activeIndex);
       canvas.style.opacity = onStaticPage ? "0" : "1";
     }
@@ -2589,6 +2723,10 @@
       drawCoverToContext(ctx, img, window.innerWidth, window.innerHeight);
     }
 
+    function setPage3CanvasBreathe(isActive) {
+      canvas.classList.toggle("is-page3-breathe", Boolean(isActive));
+    }
+
     function resizePage4PreviewCanvas() {
       if (!page4PreviewLayer || !page4PreviewCtx) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -2606,6 +2744,7 @@
     }
 
     function renderFrame(frameIndex) {
+      setPage3CanvasBreathe(false);
       const idx = Math.max(1, Math.min(CONFIG.totalFrames, Math.round(frameIndex)));
       const img = frames[idx];
 
@@ -2641,6 +2780,7 @@
       drawCover(page3BgImage);
       displayedFrame = NODES[PAGE3_INDEX].endFrame;
       isShowingPage3Background = true;
+      setPage3CanvasBreathe(true);
     }
 
     function smoothstep(edge0, edge1, x) {
@@ -3030,11 +3170,84 @@
     let targetPageIndex = null;
     let postScrollCooldownTimer = 0;
     let scrollTweenFrame = null;
+    let pageTurnTimeline = null;
 
     function easeInOutCubic(t) {
       return t < 0.5
         ? 4 * t * t * t
         : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function resetPageTurn(shouldKillTimeline = true) {
+      if (shouldKillTimeline && pageTurnTimeline) {
+        pageTurnTimeline.kill();
+      }
+      pageTurnTimeline = null;
+
+      if (pageTurnCurl) {
+        pageTurnCurl.style.opacity = "0";
+        pageTurnCurl.style.transform = "";
+      }
+
+      if (page5Scene) {
+        page5Scene.style.clipPath = "";
+        page5Scene.style.webkitClipPath = "";
+        page5Scene.style.opacity = "";
+      }
+    }
+
+    function playPage4ToPage5Turn(fromIndex, toIndex) {
+      if (fromIndex !== PAGE4_INDEX || toIndex !== PAGE5_INDEX) return;
+      if (!pageTurnCurl || !page5Scene) return;
+
+      resetPageTurn();
+
+      if (!window.gsap) {
+        pageTurnCurl.animate(
+          [
+            { opacity: 0, transform: "translate3d(0, 0, 0) skewX(-8deg)" },
+            { opacity: 0.95, transform: "translate3d(-68vw, 0, 0) skewX(-8deg)" },
+            { opacity: 0, transform: "translate3d(-118vw, 0, 0) skewX(-8deg)" },
+          ],
+          { duration: 720, easing: "cubic-bezier(0.32, 0, 0.12, 1)" }
+        );
+        return;
+      }
+
+      const gsap = window.gsap;
+      pageTurnTimeline = gsap.timeline({
+        defaults: { ease: "power2.inOut" },
+        onComplete: () => resetPageTurn(false),
+      });
+
+      gsap.set(page5Scene, {
+        opacity: 0.98,
+        clipPath: "inset(0 100% 0 0)",
+        webkitClipPath: "inset(0 100% 0 0)",
+      });
+      gsap.set(pageTurnCurl, {
+        autoAlpha: 0,
+        x: 0,
+        skewX: -8,
+      });
+
+      pageTurnTimeline
+        .to(page5Scene, {
+          clipPath: "inset(0 0% 0 0)",
+          webkitClipPath: "inset(0 0% 0 0)",
+          opacity: 1,
+          duration: 0.72,
+        }, 0)
+        .to(pageTurnCurl, {
+          autoAlpha: 0.96,
+          x: "-72vw",
+          duration: 0.46,
+        }, 0.04)
+        .to(pageTurnCurl, {
+          autoAlpha: 0,
+          x: "-126vw",
+          duration: 0.34,
+        }, 0.44);
     }
 
     function clearWheelGestureLock() {
@@ -3104,6 +3317,7 @@
 
     function startSectionScroll(targetIndex) {
       const index = clamp(targetIndex, 0, NODES.length - 1);
+      const fromIndex = getStableActivePageIndex();
       const startY = window.scrollY;
       const targetY = Math.round(index * window.innerHeight);
 
@@ -3129,6 +3343,12 @@
       targetPageIndex = index;
       wheelGestureLocked = true;
       const startedAt = performance.now();
+
+      if (fromIndex === PAGE4_INDEX && index === PAGE5_INDEX) {
+        playPage4ToPage5Turn(fromIndex, index);
+      } else {
+        resetPageTurn();
+      }
 
       const step = (now) => {
         const progress = clamp((now - startedAt) / SECTION_SCROLL_DURATION, 0, 1);
