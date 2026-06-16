@@ -99,8 +99,13 @@
       transform-origin: center center;
     }
 
-    #bgCanvas.is-page3-breathe {
-      animation: page3-canvas-breathe 7.5s ease-in-out infinite;
+    #bgCanvas.is-page1-breathe {
+      animation: page1-canvas-breathe 8s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    #bgCanvas.is-page3-zoom {
+      animation: page3-canvas-zoom-in 8.5s ease-in-out infinite alternate;
       will-change: transform;
     }
 
@@ -168,6 +173,103 @@
       mix-blend-mode: screen;
       transform: translate3d(0, 0, 0) skewX(-8deg);
       will-change: opacity, transform;
+    }
+
+    .page-turn-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 11;
+      overflow: hidden;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      background: #000;
+      transform-origin: center center;
+      will-change: opacity, transform, filter;
+    }
+
+    .page-turn-stage__image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.025);
+      filter: brightness(0.92) saturate(1.04);
+      will-change: transform, filter;
+    }
+
+    .page-turn-stage::before {
+      content: "";
+      position: absolute;
+      inset: -12%;
+      z-index: 1;
+      opacity: 0;
+      background:
+        radial-gradient(ellipse at 62% 58%, rgba(255, 246, 218, 0.62) 0%, rgba(255, 246, 218, 0.16) 24%, rgba(255, 246, 218, 0) 54%),
+        radial-gradient(ellipse at 35% 78%, rgba(182, 226, 255, 0.2) 0%, rgba(182, 226, 255, 0) 42%),
+        repeating-radial-gradient(ellipse at 58% 62%, rgba(255, 255, 255, 0.18) 0 1px, rgba(255, 255, 255, 0) 2px 18px);
+      filter: blur(16px);
+      mix-blend-mode: screen;
+      transform: scale(0.92) rotate(-3deg);
+      will-change: opacity, transform, filter;
+    }
+
+    .page-turn-stage .page-turn-stage__image {
+      z-index: 0;
+    }
+
+    .page-turn-stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      background:
+        radial-gradient(ellipse at 63% 64%, rgba(255, 250, 235, 0.38) 0%, rgba(255, 250, 235, 0.11) 28%, rgba(0, 0, 0, 0) 62%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.2));
+      mix-blend-mode: screen;
+      opacity: 0;
+      will-change: opacity;
+    }
+
+    .page-turn-stage.is-dissolving::before {
+      animation: page-turn-mist 2200ms cubic-bezier(0.32, 0, 0.12, 1) both;
+    }
+
+    .page-turn-stage.is-dissolving::after {
+      animation: page-turn-glow 2200ms cubic-bezier(0.32, 0, 0.12, 1) both;
+    }
+
+    @keyframes page-turn-mist {
+      0% {
+        opacity: 0;
+        transform: scale(0.88) rotate(-4deg);
+        filter: blur(22px);
+      }
+
+      42% {
+        opacity: 0.94;
+        transform: scale(1.04) rotate(1deg);
+        filter: blur(15px);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.16) rotate(3deg);
+        filter: blur(30px);
+      }
+    }
+
+    @keyframes page-turn-glow {
+      0%,
+      100% {
+        opacity: 0;
+      }
+
+      46% {
+        opacity: 0.82;
+      }
     }
 
     /* 视频页强制停住，避免滚过导致第三段 10–15s 动画未播放 */
@@ -298,14 +400,32 @@
       }
     }
 
-    @keyframes page3-canvas-breathe {
+    @keyframes page1-canvas-breathe {
       0%,
       100% {
-        transform: scale(1);
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+
+      25% {
+        transform: translate3d(-0.28vw, 0, 0) scale(1.009);
       }
 
       50% {
-        transform: scale(1.02);
+        transform: translate3d(0.24vw, 0, 0) scale(1.018);
+      }
+
+      75% {
+        transform: translate3d(-0.16vw, 0, 0) scale(1.009);
+      }
+    }
+
+    @keyframes page3-canvas-zoom-in {
+      0% {
+        transform: scale(1);
+      }
+
+      100% {
+        transform: scale(1.085);
       }
     }
 
@@ -1933,6 +2053,9 @@
   </main>
 
   <p class="scroll-hint" id="scrollHint">Scroll to explore</p>
+  <div class="page-turn-stage" id="pageTurnStage" aria-hidden="true">
+    <img class="page-turn-stage__image" id="pageTurnStageImage" src="outputs/assets/images/page5/page5_00.png" alt="">
+  </div>
   <div class="page-turn-curl" id="pageTurnCurl" aria-hidden="true"></div>
 
   <div id="introModal" class="intro-modal" hidden aria-hidden="true">
@@ -2412,6 +2535,8 @@
     const soundToggle = document.getElementById("soundToggle");
     const bgAudio = document.getElementById("bgAudio");
     const scrollHint = document.getElementById("scrollHint");
+    const pageTurnStage = document.getElementById("pageTurnStage");
+    const pageTurnStageImage = document.getElementById("pageTurnStageImage");
     const pageTurnCurl = document.getElementById("pageTurnCurl");
     const page4Scene = document.querySelector(".page4-scene");
     const page4BackLayer = document.querySelector(".page4-layer--back");
@@ -2429,10 +2554,12 @@
     const page5Scene = document.querySelector(".page5-scene");
     const page5RightEyeWindow = document.getElementById("page5RightEyeWindow");
     const page5SecondEyeWindow = document.getElementById("page5SecondEyeWindow");
+    const PAGE1_INDEX = 0;
     const PAGE2_INDEX = 1;
     const PAGE3_INDEX = 2;
     const PAGE4_INDEX = 3;
     const PAGE5_INDEX = 4;
+    const PAGE1_BG_PATH = "outputs/assets/images/page1/bg1_1.png";
     const PAGE3_BG_PATH = "outputs/assets/images/page3/page3_bg.png";
     const PAGE4_SCRATCH_BRUSH_RADIUS = 33;
     const PAGE4_SCRATCH_BRUSH_STEP = 28;
@@ -2442,9 +2569,15 @@
     const PAGE5_BG_HEIGHT = 3072;
     const PAGE5_EYE_MAX_X = 11;
     const PAGE5_EYE_MAX_Y = 1;
+    const PAGE1_SCRUB_START_FRAME = 1;
+    const PAGE1_SCRUB_END_FRAME = 80;
+    const PAGE1_SCRUB_REWIND_MAX_FRAME = 100;
+    const PAGE1_SCRUB_WHEEL_TO_FRAME = 0.12;
 
     const frames = new Array(CONFIG.totalFrames + 1);
     const loadingPromises = new Map();
+    let page1BgImage = null;
+    let page1BgPromise = null;
     let page3BgImage = null;
     let page3BgPromise = null;
     let loadedFrameCount = 0;
@@ -2458,9 +2591,12 @@
     let scrollDirection = 1;
     let currentFrame = 1;
     let displayedFrame = 1;
+    let isShowingPage1Background = false;
     let isShowingPage3Background = false;
     let isReady = false;
     let hasEnteredWorld = false;
+    let page1IntroScrubFrame = PAGE1_SCRUB_START_FRAME;
+    let page1IntroScrubDone = false;
     let lastActiveNode = -1;
     let isPortfolioModalOpen = false;
     let preservedPage2PlaybackState = null;
@@ -2537,6 +2673,60 @@
       pagePlayback[pageIndex].done = false;
     }
 
+    function isPage1IntroScrubActive() {
+      return hasEnteredWorld
+        && getStableActivePageIndex() === PAGE1_INDEX
+        && !page1IntroScrubDone
+        && !pagePlayback[PAGE1_INDEX].done;
+    }
+
+    function canHandlePage1IntroScrub(deltaY) {
+      if (!hasEnteredWorld || getStableActivePageIndex() !== PAGE1_INDEX) return false;
+      const pb = pagePlayback[PAGE1_INDEX];
+      if (pb.done) return false;
+      if (!page1IntroScrubDone) return true;
+      return deltaY < 0 && pb.frame <= PAGE1_SCRUB_REWIND_MAX_FRAME;
+    }
+
+    function syncPage1IntroScrubFrame() {
+      page1IntroScrubFrame = clamp(
+        page1IntroScrubFrame,
+        PAGE1_SCRUB_START_FRAME,
+        PAGE1_SCRUB_END_FRAME
+      );
+      pagePlayback[PAGE1_INDEX].frame = page1IntroScrubFrame;
+      currentFrame = page1IntroScrubFrame;
+      displayedFrame = -1;
+      renderFrame(page1IntroScrubFrame);
+    }
+
+    function handlePage1IntroScrub(deltaY) {
+      if (!canHandlePage1IntroScrub(deltaY)) return false;
+
+      if (page1IntroScrubDone && deltaY < 0) {
+        page1IntroScrubDone = false;
+        page1IntroScrubFrame = clamp(
+          pagePlayback[PAGE1_INDEX].frame,
+          PAGE1_SCRUB_START_FRAME,
+          PAGE1_SCRUB_END_FRAME
+        );
+      }
+
+      page1IntroScrubFrame = clamp(
+        page1IntroScrubFrame + deltaY * PAGE1_SCRUB_WHEEL_TO_FRAME,
+        PAGE1_SCRUB_START_FRAME,
+        PAGE1_SCRUB_END_FRAME
+      );
+
+      if (page1IntroScrubFrame >= PAGE1_SCRUB_END_FRAME - 0.01) {
+        page1IntroScrubDone = true;
+        pagePlayback[PAGE1_INDEX].frame = PAGE1_SCRUB_END_FRAME;
+      }
+
+      syncPage1IntroScrubFrame();
+      return true;
+    }
+
     function preservePage2PlaybackState(lockedScrollY = window.scrollY) {
       preservedPage2PlaybackState = {
         activePageIndex: getActivePageIndex(),
@@ -2581,8 +2771,9 @@
     function updateCanvasVisibility() {
       const activeIndex = getStableActivePageIndex();
       if (activeIndex !== PAGE3_INDEX || !pagePlayback[PAGE3_INDEX].done) {
-        setPage3CanvasBreathe(false);
+        setPage3CanvasZoom(false);
       }
+      setPage1CanvasBreathe(activeIndex === PAGE1_INDEX);
       const onStaticPage = !isVideoPage(activeIndex);
       canvas.style.opacity = onStaticPage ? "0" : "1";
     }
@@ -2671,6 +2862,23 @@
       }
     }
 
+    function ensurePage1Background() {
+      if (page1BgImage) return Promise.resolve(page1BgImage);
+      if (page1BgPromise) return page1BgPromise;
+
+      page1BgPromise = loadImage(PAGE1_BG_PATH)
+        .then((img) => {
+          page1BgImage = img;
+          return img;
+        })
+        .catch((err) => {
+          console.warn(err.message);
+          return null;
+        });
+
+      return page1BgPromise;
+    }
+
     function ensurePage3Background() {
       if (page3BgImage) return Promise.resolve(page3BgImage);
       if (page3BgPromise) return page3BgPromise;
@@ -2723,8 +2931,12 @@
       drawCoverToContext(ctx, img, window.innerWidth, window.innerHeight);
     }
 
-    function setPage3CanvasBreathe(isActive) {
-      canvas.classList.toggle("is-page3-breathe", Boolean(isActive));
+    function setPage1CanvasBreathe(isActive) {
+      canvas.classList.toggle("is-page1-breathe", Boolean(isActive));
+    }
+
+    function setPage3CanvasZoom(isActive) {
+      canvas.classList.toggle("is-page3-zoom", Boolean(isActive));
     }
 
     function resizePage4PreviewCanvas() {
@@ -2744,7 +2956,7 @@
     }
 
     function renderFrame(frameIndex) {
-      setPage3CanvasBreathe(false);
+      setPage3CanvasZoom(false);
       const idx = Math.max(1, Math.min(CONFIG.totalFrames, Math.round(frameIndex)));
       const img = frames[idx];
 
@@ -2753,6 +2965,7 @@
           if (loaded && Math.round(currentFrame) === idx) {
             drawCover(loaded);
             displayedFrame = idx;
+            isShowingPage1Background = false;
             isShowingPage3Background = false;
           }
         });
@@ -2762,7 +2975,27 @@
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       drawCover(img);
       displayedFrame = idx;
+      isShowingPage1Background = false;
       isShowingPage3Background = false;
+    }
+
+    function shouldShowPage1Background() {
+      const activeIndex = getStableActivePageIndex();
+      return activeIndex === PAGE1_INDEX && pagePlayback[PAGE1_INDEX].done;
+    }
+
+    function renderPage1Background() {
+      if (!page1BgImage) {
+        ensurePage1Background();
+        return;
+      }
+
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      drawCover(page1BgImage);
+      displayedFrame = NODES[PAGE1_INDEX].endFrame;
+      isShowingPage1Background = true;
+      isShowingPage3Background = false;
+      setPage3CanvasZoom(false);
     }
 
     function shouldShowPage3Background() {
@@ -2779,8 +3012,9 @@
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       drawCover(page3BgImage);
       displayedFrame = NODES[PAGE3_INDEX].endFrame;
+      isShowingPage1Background = false;
       isShowingPage3Background = true;
-      setPage3CanvasBreathe(true);
+      setPage3CanvasZoom(true);
     }
 
     function smoothstep(edge0, edge1, x) {
@@ -3143,8 +3377,8 @@
       });
 
       const isLastPage = activeIndex === NODES.length - 1;
-      if (activeIndex === 0) {
-        const page1Done = pagePlayback[0].done;
+      if (activeIndex === PAGE1_INDEX) {
+        const page1Done = pagePlayback[PAGE1_INDEX].done;
         scrollHint.textContent = page1Done ? "Scroll down" : "Scroll to explore";
         scrollHint.style.opacity = String(page1Done ? 0.6 : Math.max(0, 0.48 - activeProgress * 0.48));
       } else if (activeIndex === PAGE4_INDEX) {
@@ -3164,6 +3398,8 @@
     const SECTION_SCROLL_DURATION = 620;
     const WHEEL_DELTA_THRESHOLD = 24;
     const POST_SCROLL_COOLDOWN_MS = 420;
+    const PAGE_TURN_DURATION_MS = 2200;
+    const PAGE_TURN_DURATION_SEC = PAGE_TURN_DURATION_MS / 1000;
     let isScrollLocked = false;
     let isSectionScrolling = false;
     let wheelGestureLocked = false;
@@ -3184,6 +3420,25 @@
       }
       pageTurnTimeline = null;
 
+      if (pageTurnStage) {
+        pageTurnStage.classList.remove("is-dissolving");
+        pageTurnStage.style.opacity = "0";
+        pageTurnStage.style.visibility = "hidden";
+        pageTurnStage.style.transform = "";
+        pageTurnStage.style.filter = "";
+      }
+
+      if (pageTurnStageImage) {
+        pageTurnStageImage.style.transform = "";
+        pageTurnStageImage.style.filter = "";
+      }
+
+      if (page4Scene) {
+        page4Scene.style.opacity = "";
+        page4Scene.style.transform = "";
+        page4Scene.style.filter = "";
+      }
+
       if (pageTurnCurl) {
         pageTurnCurl.style.opacity = "0";
         pageTurnCurl.style.transform = "";
@@ -3198,19 +3453,32 @@
 
     function playPage4ToPage5Turn(fromIndex, toIndex) {
       if (fromIndex !== PAGE4_INDEX || toIndex !== PAGE5_INDEX) return;
-      if (!pageTurnCurl || !page5Scene) return;
+      if (!pageTurnStage || !pageTurnCurl) return;
 
       resetPageTurn();
+      pageTurnStage.classList.add("is-dissolving");
 
       if (!window.gsap) {
-        pageTurnCurl.animate(
+        pageTurnStage.style.opacity = "1";
+        pageTurnStage.style.visibility = "visible";
+        pageTurnStage.animate(
           [
-            { opacity: 0, transform: "translate3d(0, 0, 0) skewX(-8deg)" },
-            { opacity: 0.95, transform: "translate3d(-68vw, 0, 0) skewX(-8deg)" },
-            { opacity: 0, transform: "translate3d(-118vw, 0, 0) skewX(-8deg)" },
+            { opacity: 0, transform: "scale(1.075)", filter: "blur(12px) brightness(0.72)" },
+            { opacity: 0.52, transform: "scale(1.038)", filter: "blur(5px) brightness(0.9)" },
+            { opacity: 1, transform: "scale(1)", filter: "blur(0px) brightness(1)" },
           ],
-          { duration: 720, easing: "cubic-bezier(0.32, 0, 0.12, 1)" }
-        );
+          { duration: PAGE_TURN_DURATION_MS, easing: "cubic-bezier(0.32, 0, 0.12, 1)", fill: "forwards" }
+        ).onfinish = () => resetPageTurn(false);
+
+        if (page4Scene) {
+          page4Scene.animate(
+            [
+              { opacity: 1, transform: "scale(1)", filter: "blur(0px) brightness(1)" },
+              { opacity: 0.32, transform: "scale(1.055)", filter: "blur(10px) brightness(0.72)" },
+            ],
+            { duration: PAGE_TURN_DURATION_MS * 0.78, easing: "cubic-bezier(0.32, 0, 0.12, 1)", fill: "forwards" }
+          );
+        }
         return;
       }
 
@@ -3220,34 +3488,35 @@
         onComplete: () => resetPageTurn(false),
       });
 
-      gsap.set(page5Scene, {
-        opacity: 0.98,
-        clipPath: "inset(0 100% 0 0)",
-        webkitClipPath: "inset(0 100% 0 0)",
+      gsap.set(pageTurnStage, {
+        visibility: "visible",
+        opacity: 0,
+        scale: 1.075,
+        filter: "blur(12px) brightness(0.72)",
       });
-      gsap.set(pageTurnCurl, {
-        autoAlpha: 0,
-        x: 0,
-        skewX: -8,
+      gsap.set(pageTurnStageImage, {
+        scale: 1.04,
+        filter: "brightness(0.84) saturate(1.06)",
       });
 
       pageTurnTimeline
-        .to(page5Scene, {
-          clipPath: "inset(0 0% 0 0)",
-          webkitClipPath: "inset(0 0% 0 0)",
+        .to(pageTurnStage, {
           opacity: 1,
-          duration: 0.72,
+          scale: 1,
+          filter: "blur(0px) brightness(1)",
+          duration: PAGE_TURN_DURATION_SEC,
         }, 0)
-        .to(pageTurnCurl, {
-          autoAlpha: 0.96,
-          x: "-72vw",
-          duration: 0.46,
-        }, 0.04)
-        .to(pageTurnCurl, {
-          autoAlpha: 0,
-          x: "-126vw",
-          duration: 0.34,
-        }, 0.44);
+        .to(pageTurnStageImage, {
+          scale: 1,
+          filter: "brightness(1) saturate(1)",
+          duration: PAGE_TURN_DURATION_SEC,
+        }, 0)
+        .to(page4Scene, {
+          opacity: 0.32,
+          scale: 1.055,
+          filter: "blur(10px) brightness(0.72)",
+          duration: PAGE_TURN_DURATION_SEC * 0.78,
+        }, 0);
     }
 
     function clearWheelGestureLock() {
@@ -3384,6 +3653,10 @@
       }
 
       const { deltaX, deltaY } = event;
+      if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 1 && handlePage1IntroScrub(deltaY)) {
+        return;
+      }
+
       if (Math.abs(deltaY) <= Math.abs(deltaX) || Math.abs(deltaY) < WHEEL_DELTA_THRESHOLD) {
         return;
       }
@@ -3429,6 +3702,13 @@
 
       const pageIndex = getStableActivePageIndex();
 
+      if (isPage1IntroScrubActive()) {
+        pagePlayback[PAGE1_INDEX].frame = page1IntroScrubFrame;
+        currentFrame = page1IntroScrubFrame;
+        lastPageIndex = PAGE1_INDEX;
+        return;
+      }
+
       if (pageIndex !== lastPageIndex) {
         if (lastPageIndex === PAGE4_INDEX && pageIndex !== PAGE4_INDEX) {
           resetPage4FlipState();
@@ -3442,7 +3722,7 @@
           updatePage5EyeCoverRect();
         }
 
-        if (pageIndex === 0 && pagePlayback[0].done) {
+        if (pageIndex === PAGE1_INDEX && pagePlayback[PAGE1_INDEX].done) {
           // Page 1 已播完：回到首页时保持最后一帧
         } else if (isVideoPage(pageIndex)) {
           enterVideoPage(pageIndex);
@@ -3461,7 +3741,7 @@
         return;
       }
 
-      if (pageIndex === 0 && pb.done) {
+      if (pageIndex === PAGE1_INDEX && pb.done) {
         currentFrame = node.endFrame;
         return;
       }
@@ -3492,13 +3772,25 @@
       updateCanvasVisibility();
 
       const activeIndex = getStableActivePageIndex();
+      if (activeIndex === PAGE5_INDEX) {
+        updatePage5EyeCoverRect();
+      }
+
       if (isVideoPage(activeIndex)) {
         preloadAroundFrame(currentFrame);
-        if (shouldShowPage3Background()) {
+        if (shouldShowPage1Background()) {
+          if (!isShowingPage1Background) {
+            renderPage1Background();
+          }
+        } else if (shouldShowPage3Background()) {
           if (!isShowingPage3Background) {
             renderPage3Background();
           }
-        } else if (Math.round(displayedFrame) !== Math.round(currentFrame) || isShowingPage3Background) {
+        } else if (
+          Math.round(displayedFrame) !== Math.round(currentFrame)
+          || isShowingPage1Background
+          || isShowingPage3Background
+        ) {
           renderFrame(currentFrame);
         }
       }
@@ -3860,6 +4152,7 @@
        ═══════════════════════════════════════════ */
     resizeCanvas();
     resizePage4PreviewCanvas();
+    updatePage5EyeCoverRect();
     initializeBackgroundAudio();
     updateSoundToggleUI();
     window.addEventListener("resize", () => {
@@ -3872,6 +4165,7 @@
     window.addEventListener("wheel", handleWheel, { passive: false });
 
     requestAnimationFrame(tick);
+    ensurePage1Background();
     ensurePage3Background();
 
     preloadFrames().then(() => {
@@ -3886,6 +4180,8 @@
       });
       lastPageIndex = 0;
       currentFrame = 1;
+      page1IntroScrubFrame = PAGE1_SCRUB_START_FRAME;
+      page1IntroScrubDone = false;
       renderFrame(currentFrame);
     });
 
