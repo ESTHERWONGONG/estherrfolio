@@ -552,11 +552,12 @@
     }
 
     .page5-second-eye-window .page5-eye-bottom-shadow {
-      top: calc(50% + 4%);
-      width: 106%;
-      height: 96%;
-      background: rgba(0, 0, 0, 0.45);
-      filter: blur(3px);
+      left: calc(50% - 2%);
+      top: calc(50% + 5%);
+      width: 94%;
+      height: 94%;
+      background: rgba(0, 0, 0, 0.42);
+      filter: blur(2.7px);
     }
 
     .page5-second-eye-window .page5-right-eye-ball {
@@ -1237,6 +1238,12 @@
       touch-action: none;
     }
 
+    body.other-projects-open .nav {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
     .intro-modal {
       position: fixed;
       inset: 0;
@@ -1479,6 +1486,23 @@
     .other-project-card.is-loaded img {
       opacity: 1;
       transform: scale(1);
+      animation: other-project-image-breathe 10.5s ease-in-out infinite;
+    }
+
+    @keyframes other-project-image-breathe {
+      0%,
+      100% {
+        filter: brightness(1) drop-shadow(0 0 0 rgba(255, 206, 148, 0));
+        transform: scale(1);
+      }
+
+      50% {
+        filter:
+          brightness(1.08)
+          drop-shadow(0 0 12px rgba(255, 230, 176, 0.34))
+          drop-shadow(0 0 28px rgba(255, 206, 148, 0.18));
+        transform: scale(1.012);
+      }
     }
 
     .intro-modal__sidebar,
@@ -4277,6 +4301,7 @@
       renderOtherProjectsGallery();
       otherProjectsModal.classList.add("is-open");
       otherProjectsModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("other-projects-open");
       lockBodyScroll();
       updateContentUI();
 
@@ -4289,6 +4314,7 @@
       otherProjectsModalOpen = false;
       otherProjectsModal.classList.remove("is-open");
       otherProjectsModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("other-projects-open");
       unlockBodyScroll();
       restorePage2PlaybackState(savedScrollY);
       updateContentUI();
