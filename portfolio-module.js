@@ -50,8 +50,6 @@
   var visualRenderId = 0;
   var IMAGE_CACHE_VERSION = "20260612";
   var imagePreloadCache = new Map();
-  var projectPreloadCache = new Map();
-  var MAX_PRELOAD_CONCURRENCY = 5;
   var SWIPE_THRESHOLD = 48;
   var SWIPE_MAX_VERTICAL = 72;
 
@@ -1948,98 +1946,6 @@
     ];
   }
 
-  function uniqueAssets(items) {
-    var seen = new Set();
-
-    return items.filter(function (item) {
-      if (!item || seen.has(item)) {
-        return false;
-      }
-
-      seen.add(item);
-      return true;
-    });
-  }
-
-  function collectProjectAssets(project) {
-    var images = [];
-    var pdfs = [];
-
-    if (!project) {
-      return { images: images, pdfs: pdfs };
-    }
-
-    if (project.visual) {
-      images.push(project.visual);
-    }
-
-    if (project.pdfEmbed) {
-      pdfs.push(project.pdfEmbed);
-    }
-
-    if (project.sections) {
-      project.sections.forEach(function (_, sectionIndex) {
-        getProjectPages(project, sectionIndex).forEach(function (page) {
-          if (page.visual) {
-            images.push(page.visual);
-          }
-
-          if (page.pdfEmbed) {
-            pdfs.push(page.pdfEmbed);
-          }
-        });
-      });
-    } else {
-      getProjectPages(project, 0).forEach(function (page) {
-        if (page.visual) {
-          images.push(page.visual);
-        }
-
-        if (page.pdfEmbed) {
-          pdfs.push(page.pdfEmbed);
-        }
-      });
-    }
-
-    return {
-      images: uniqueAssets(images),
-      pdfs: uniqueAssets(pdfs)
-    };
-  }
-
-  function getProjectAssets(projectId) {
-    return collectProjectAssets(projects[projectId]);
-  }
-
-  function runLimitedQueue(items, limit, runner) {
-    var index = 0;
-    var active = 0;
-
-    return new Promise(function (resolve) {
-      function next() {
-        if (index >= items.length && active === 0) {
-          resolve();
-          return;
-        }
-
-        while (active < limit && index < items.length) {
-          active += 1;
-
-          runner(items[index])
-            .catch(function () {})
-            .then(function () {
-              active -= 1;
-              next();
-            });
-
-          index += 1;
-        }
-      }
-
-      next();
-    });
-  }
-
   function getSectionTabIcon(type, isActive) {
     if (type === "product-design") {
       if (isActive) {
@@ -2319,6 +2225,7 @@
     modalIntro.scrollTop = 0;
     modal.classList.toggle("has-pdf-preview", Boolean(page.pdfEmbed));
     renderPageMedia(page);
+    preloadNearbyPageAssets();
     var modalPanel = modal.querySelector(".pt-modal-panel");
     if (modalPanel) {
       modalPanel.scrollTop = 0;
@@ -2424,6 +2331,7 @@
 
     var promise = new Promise(function (resolve) {
       var img = new Image();
+      img.decoding = "async";
 
       img.onload = function () {
         resolve(url);
@@ -2439,16 +2347,17 @@
     return promise;
   }
 
-  function preloadProjectAssets(projectId) {
-    if (projectPreloadCache.has(projectId)) {
-      return projectPreloadCache.get(projectId);
+  function preloadNearbyPageAssets() {
+    if (!activePagedProject) {
+      return;
     }
 
-    var assets = getProjectAssets(projectId);
-    var promise = runLimitedQueue(assets.images, MAX_PRELOAD_CONCURRENCY, preloadImage);
-
-    projectPreloadCache.set(projectId, promise);
-    return promise;
+    [activePageIndex - 1, activePageIndex + 1].forEach(function (index) {
+      var page = activePagedProject.pages[index];
+      if (page && page.visual) {
+        preloadImage(page.visual, page.visualRev);
+      }
+    });
   }
 
   function renderPageMedia(page) {
@@ -2654,7 +2563,6 @@
     lastFocusedElement = document.activeElement;
     lockedScrollY = window.scrollY;
     fillModal(project);
-    preloadProjectAssets(index);
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("pt-modal-lock");

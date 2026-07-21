@@ -338,6 +338,23 @@
       will-change: transform;
     }
 
+    /* Keep full-page effects out of the compositor until their page is visible. */
+    .page:not(.is-render-active) > .page4-scene,
+    .page:not(.is-render-active) > .page5-scene,
+    .page:not(.is-render-active) > .page__content {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .page:not(.is-render-active) *,
+    body.is-backgrounded * {
+      animation-play-state: paused !important;
+    }
+
+    body.is-backgrounded canvas {
+      visibility: hidden;
+    }
+
     .page4-layer {
       position: absolute;
       inset: 0;
@@ -1781,7 +1798,7 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="portfolio-module.css">
+  <link rel="stylesheet" href="portfolio-module.css?v=20260721-perf2">
 </head>
 <body>
   <div class="cursor cursor-default" id="cursor" aria-hidden="true"></div>
@@ -2077,8 +2094,8 @@
     </section>
     <section class="page page--static" id="page-4">
       <div class="page4-scene" aria-hidden="true">
-        <img class="page4-layer page4-layer--back" src="outputs/assets/images/page4/page4_bg2.png" alt="">
-        <img class="page4-layer page4-layer--front" src="outputs/assets/images/page4/page4_bg.png" alt="">
+        <img class="page4-layer page4-layer--back" src="outputs/assets/images/page4/page4_bg2.webp" alt="" loading="lazy" decoding="async" fetchpriority="low">
+        <img class="page4-layer page4-layer--front" src="outputs/assets/images/page4/page4_bg.webp" alt="" loading="lazy" decoding="async" fetchpriority="low">
         <canvas class="page4-preview-layer" id="page4PreviewLayer" aria-hidden="true"></canvas>
         <div class="ripple-layer">
           <svg class="ripple-filter-defs" aria-hidden="true" focusable="false">
@@ -2163,14 +2180,14 @@
               </filter>
             </defs>
           </svg>
-          <img class="ripple-source" src="outputs/assets/images/page4/page4_bg.png" alt="">
+          <img class="ripple-source" src="outputs/assets/images/page4/page4_bg.webp" alt="" loading="lazy" decoding="async" fetchpriority="low">
           <div class="ripple-wave ripple-wave--1"></div>
           <div class="ripple-wave ripple-wave--2"></div>
           <div class="ripple-wave ripple-wave--3"></div>
         </div>
         <div class="page4-ball-layer" aria-hidden="true">
-          <img class="page4-ball page4-ball--bg1" src="outputs/assets/images/page4/ball1.png" alt="">
-          <img class="page4-ball page4-ball--bg2" src="outputs/assets/images/page4/ball2.png" alt="">
+          <img class="page4-ball page4-ball--bg1" src="outputs/assets/images/page4/ball1.webp" alt="" loading="lazy" decoding="async" fetchpriority="low">
+          <img class="page4-ball page4-ball--bg2" src="outputs/assets/images/page4/ball2.webp" alt="" loading="lazy" decoding="async" fetchpriority="low">
           <div class="page4-ball-ring" aria-hidden="true">
             <svg viewBox="0 0 100 100" focusable="false">
               <defs>
@@ -2184,8 +2201,8 @@
             </svg>
           </div>
         </div>
-        <img class="page4-layer page4-layer--hand" src="outputs/assets/images/page4/page4hand_bg.png" alt="">
-        <img class="page4-layer page4-layer--hand-alt" src="outputs/assets/images/page4/page4_bg2hand.png" alt="">
+        <img class="page4-layer page4-layer--hand" src="outputs/assets/images/page4/page4hand_bg.webp" alt="" loading="lazy" decoding="async" fetchpriority="low">
+        <img class="page4-layer page4-layer--hand-alt" src="outputs/assets/images/page4/page4_bg2hand.webp" alt="" loading="lazy" decoding="async" fetchpriority="low">
         <div class="water-hotspot"></div>
       </div>
       <div class="page__content" id="page4Content" aria-hidden="true"></div>
@@ -2193,20 +2210,20 @@
     <section class="page page--static" id="page-5">
       <div class="page5-scene" aria-hidden="true">
         <div class="page5-frame-layer" id="page5FrameLayer">
-          <img class="page5-layer" id="page5FrameImage" src="outputs/assets/images/page5/page5_00.png" alt="">
+          <img class="page5-layer" id="page5FrameImage" src="outputs/assets/images/page5/page5_00.webp" alt="" loading="lazy" decoding="async" fetchpriority="low">
         </div>
         <div class="page5-right-eye-window" id="page5RightEyeWindow">
           <div class="page5-right-eye-anchor">
             <div class="page5-eye-bottom-shadow" aria-hidden="true"></div>
             <div class="page5-eye-shadow" aria-hidden="true"></div>
-            <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=eye-restored-1" alt="">
+            <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=eye-restored-1" alt="" loading="lazy" decoding="async" fetchpriority="low">
           </div>
         </div>
         <div class="page5-second-eye-window" id="page5SecondEyeWindow" role="button" tabindex="0" aria-label="Open Other Projects" data-cursor-hover>
           <div class="page5-right-eye-anchor">
             <div class="page5-eye-bottom-shadow" aria-hidden="true"></div>
             <div class="page5-eye-shadow" aria-hidden="true"></div>
-            <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball2.png?v=eye2-alpha-3" alt="">
+            <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball2.png?v=eye2-alpha-3" alt="" loading="lazy" decoding="async" fetchpriority="low">
           </div>
         </div>
       </div>
@@ -2216,19 +2233,19 @@
 
   <p class="scroll-hint" id="scrollHint">Scroll to explore</p>
   <div class="page-turn-stage" id="pageTurnStage" aria-hidden="true">
-    <img class="page-turn-stage__image" id="pageTurnStageImage" src="outputs/assets/images/page5/page5_00.png" alt="">
+    <img class="page-turn-stage__image" id="pageTurnStageImage" src="outputs/assets/images/page5/page5_00.webp" alt="" loading="lazy" decoding="async" fetchpriority="low">
     <div class="page5-right-eye-window page-turn-eye-window" id="pageTurnEyeWindow">
       <div class="page5-right-eye-anchor">
         <div class="page5-eye-bottom-shadow" aria-hidden="true"></div>
         <div class="page5-eye-shadow" aria-hidden="true"></div>
-        <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=eye-restored-1" alt="">
+        <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball1.png?v=eye-restored-1" alt="" loading="lazy" decoding="async" fetchpriority="low">
       </div>
     </div>
     <div class="page5-second-eye-window page-turn-second-eye-window" id="pageTurnSecondEyeWindow">
       <div class="page5-right-eye-anchor">
         <div class="page5-eye-bottom-shadow" aria-hidden="true"></div>
         <div class="page5-eye-shadow" aria-hidden="true"></div>
-        <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball2.png?v=eye2-alpha-3" alt="">
+        <img class="page5-right-eye-ball" src="outputs/assets/images/page5/eyeball2.png?v=eye2-alpha-3" alt="" loading="lazy" decoding="async" fetchpriority="low">
       </div>
     </div>
   </div>
@@ -2638,7 +2655,10 @@
       textTransitionSmooth: 0.12,
 
       // 预加载
-      preloadAhead: 30,
+      preloadAhead: 12,
+      preloadBehind: 4,
+      initialPreloadFrames: 18,
+      maxResidentFrames: 28,
     };
 
     /* ═══════════════════════════════════════════
@@ -2742,8 +2762,8 @@
     const PAGE3_INDEX = 2;
     const PAGE4_INDEX = 3;
     const PAGE5_INDEX = 4;
-    const PAGE1_BG_PATH = "outputs/assets/images/page1/bg1_1.png";
-    const PAGE3_BG_PATH = "outputs/assets/images/page3/page3_bg.png";
+    const PAGE1_BG_PATH = "outputs/assets/images/page1/bg1_1.webp";
+    const PAGE3_BG_PATH = "outputs/assets/images/page3/page3_bg.webp";
     const PAGE4_SCRATCH_BRUSH_RADIUS = 33;
     const PAGE4_SCRATCH_BRUSH_STEP = 28;
     const PAGE4_TRAIL_POINT_LIFE = 1120;
@@ -2781,11 +2801,15 @@
 
     const frames = new Array(CONFIG.totalFrames + 1);
     const loadingPromises = new Map();
+    const initialFrameIndexes = Array.from(
+      { length: CONFIG.initialPreloadFrames },
+      (_, index) => index + 1
+    );
     let page1BgImage = null;
     let page1BgPromise = null;
     let page3BgImage = null;
     let page3BgPromise = null;
-    let loadedFrameCount = 0;
+    let mainTickRaf = null;
 
     const pagePlayback = NODES.map((node) => ({
       frame: node.video !== false ? node.startFrame : CONFIG.totalFrames,
@@ -3013,24 +3037,18 @@
     }
 
     function updateLoaderUI() {
-      const pct = (loadedFrameCount / CONFIG.totalFrames) * 100;
+      const initialLoadedCount = initialFrameIndexes.reduce(
+        (count, index) => count + (frames[index] ? 1 : 0),
+        0
+      );
+      const pct = (initialLoadedCount / initialFrameIndexes.length) * 100;
       loaderProgress.style.width = `${pct}%`;
       loaderPercent.textContent = `${Math.round(pct)}%`;
-      loaderText.textContent = `Loading frames ${loadedFrameCount} / ${CONFIG.totalFrames}`;
+      loaderText.textContent = `Preparing ${initialLoadedCount} / ${initialFrameIndexes.length}`;
     }
 
     function markFrameLoaded() {
-      loadedFrameCount = 0;
-      for (let i = 1; i <= CONFIG.totalFrames; i++) {
-        if (frames[i]) loadedFrameCount++;
-      }
-      updateLoaderUI();
-      if (loadedFrameCount >= CONFIG.totalFrames) {
-        isReady = true;
-        loaderPercent.textContent = "100%";
-        loaderText.textContent = "Ready";
-        loader.classList.add("is-ready");
-      }
+      if (!isReady) updateLoaderUI();
     }
 
     async function ensureFrame(index) {
@@ -3056,30 +3074,60 @@
     }
 
     async function preloadFrames() {
-      const concurrency = 8;
+      const concurrency = 4;
 
-      for (let start = 1; start <= CONFIG.totalFrames; start += concurrency) {
-        const end = Math.min(CONFIG.totalFrames, start + concurrency - 1);
-        const batch = [];
-
-        for (let i = start; i <= end; i++) {
-          batch.push(ensureFrame(i));
-        }
-
+      for (let start = 0; start < initialFrameIndexes.length; start += concurrency) {
+        const batch = initialFrameIndexes
+          .slice(start, start + concurrency)
+          .map((index) => ensureFrame(index));
         await Promise.all(batch);
       }
 
-      if (loadedFrameCount < CONFIG.totalFrames) {
-        loaderText.textContent = `Loaded ${loadedFrameCount} / ${CONFIG.totalFrames}, continuing…`;
-      }
+      isReady = Boolean(frames[1]);
+      loaderProgress.style.width = "100%";
+      loaderPercent.textContent = "100%";
+      loaderText.textContent = isReady ? "Ready" : "Unable to load the opening scene";
+      loader.classList.toggle("is-ready", isReady);
     }
 
     function preloadAroundFrame(frameIndex) {
       const center = Math.round(frameIndex);
-      for (let i = center - CONFIG.preloadAhead; i <= center + CONFIG.preloadAhead; i++) {
-        if (i >= 1 && i <= CONFIG.totalFrames && !frames[i] && !loadingPromises.has(i)) {
-          ensureFrame(i);
+      const candidates = [center];
+
+      for (let distance = 1; distance <= CONFIG.preloadAhead; distance++) {
+        candidates.push(center + distance);
+        if (distance <= CONFIG.preloadBehind) candidates.push(center - distance);
+      }
+
+      candidates.forEach((index) => {
+        if (
+          index >= 1
+          && index <= CONFIG.totalFrames
+          && !frames[index]
+          && !loadingPromises.has(index)
+        ) {
+          ensureFrame(index);
         }
+      });
+
+      const keepRadius = Math.max(
+        CONFIG.preloadAhead,
+        Math.floor((CONFIG.maxResidentFrames - 1) / 2)
+      );
+      for (let index = 1; index <= CONFIG.totalFrames; index++) {
+        if (frames[index] && Math.abs(index - center) > keepRadius) {
+          frames[index] = null;
+        }
+      }
+    }
+
+    function releaseFrameCache(keepIndex = null) {
+      const retainedIndex = keepIndex === null
+        ? null
+        : clamp(Math.round(keepIndex), 1, CONFIG.totalFrames);
+
+      for (let index = 1; index <= CONFIG.totalFrames; index++) {
+        if (index !== retainedIndex) frames[index] = null;
       }
     }
 
@@ -3121,7 +3169,7 @@
        Canvas 渲染
        ═══════════════════════════════════════════ */
     function resizeCanvas() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.floor(window.innerWidth * dpr);
       canvas.height = Math.floor(window.innerHeight * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -3162,7 +3210,7 @@
 
     function resizePage4PreviewCanvas() {
       if (!page4PreviewLayer || !page4PreviewCtx) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       page4PreviewLayer.width = Math.floor(window.innerWidth * dpr);
       page4PreviewLayer.height = Math.floor(window.innerHeight * dpr);
       page4PreviewCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -3509,12 +3557,7 @@
 
     function handlePage5EyePointerMove(event) {
       if (!page5Section || !page5RightEyeWindow) return;
-      if (getStableActivePageIndex() !== PAGE5_INDEX) {
-        resetPage5Eye();
-        return;
-      }
-
-      updatePage5EyeCoverRect();
+      if (getStableActivePageIndex() !== PAGE5_INDEX) return;
 
       const pageRect = page5Section.getBoundingClientRect();
       const pointerInsidePage5 = event.clientY >= pageRect.top
@@ -3579,6 +3622,9 @@
 
       if (activeIndex !== lastActiveNode) {
         lastActiveNode = activeIndex;
+        pageSections.forEach((section, index) => {
+          section.classList.toggle("is-render-active", index === activeIndex);
+        });
         navLinks.querySelectorAll("a[data-node]").forEach((a) => {
           a.classList.toggle("is-active", Number(a.dataset.node) === activeIndex);
         });
@@ -3953,7 +3999,7 @@
       renderFrame(node.startFrame);
     }
 
-    function updatePlayback() {
+    function updatePlayback(deltaSeconds = 1 / 60) {
       if (!hasEnteredWorld) {
         currentFrame = pagePlayback[lastPageIndex]?.frame ?? currentFrame;
         return;
@@ -3999,6 +4045,7 @@
         } else if (isVideoPage(pageIndex)) {
           enterVideoPage(pageIndex);
         } else {
+          releaseFrameCache();
           resetPagePlayback(pageIndex);
         }
         lastPageIndex = pageIndex;
@@ -4019,7 +4066,7 @@
       }
 
       if (!pb.done) {
-        pb.frame += CONFIG.fps / 60;
+        pb.frame += CONFIG.fps * deltaSeconds;
         if (pb.frame >= node.endFrame) {
           pb.frame = node.endFrame;
           pb.done = true;
@@ -4039,14 +4086,35 @@
       lastScrollY = currentScrollY;
     }
 
-    function tick() {
-      updatePlayback();
-      updateCanvasVisibility();
+    const MAIN_TICK_ACTIVE_INTERVAL = 1000 / 30;
+    const MAIN_TICK_IDLE_INTERVAL = 1000 / 10;
+    let mainTickLastTime = 0;
+
+    function tick(now = performance.now()) {
+      mainTickRaf = null;
+      if (document.hidden) return;
 
       const activeIndex = getStableActivePageIndex();
-      if (activeIndex === PAGE5_INDEX) {
-        updatePage5EyeCoverRect();
+      const isActivelyRendering = hasEnteredWorld
+        && (
+          isSectionScrolling
+          || (isVideoPage(activeIndex) && !pagePlayback[activeIndex].done)
+        );
+      const tickInterval = isActivelyRendering
+        ? MAIN_TICK_ACTIVE_INTERVAL
+        : MAIN_TICK_IDLE_INTERVAL;
+      const elapsed = mainTickLastTime ? now - mainTickLastTime : tickInterval;
+
+      if (elapsed < tickInterval * 0.9) {
+        mainTickRaf = requestAnimationFrame(tick);
+        return;
       }
+
+      mainTickLastTime = now;
+      const deltaSeconds = Math.min(elapsed, 100) / 1000;
+
+      updatePlayback(deltaSeconds);
+      updateCanvasVisibility();
 
       if (isVideoPage(activeIndex)) {
         preloadAroundFrame(currentFrame);
@@ -4068,7 +4136,26 @@
       }
 
       updateContentUI();
-      requestAnimationFrame(tick);
+      mainTickRaf = requestAnimationFrame(tick);
+    }
+
+    function syncDocumentActivity() {
+      document.body.classList.toggle("is-backgrounded", document.hidden);
+
+      if (document.hidden) {
+        mainTickLastTime = 0;
+        if (mainTickRaf !== null) {
+          cancelAnimationFrame(mainTickRaf);
+          mainTickRaf = null;
+        }
+        releaseFrameCache(Math.round(currentFrame));
+        if (bgAudio && !bgAudio.paused) bgAudio.pause();
+        return;
+      }
+
+      mainTickLastTime = 0;
+      if (mainTickRaf === null) mainTickRaf = requestAnimationFrame(tick);
+      syncAudio();
     }
 
     /* ═══════════════════════════════════════════
@@ -4161,6 +4248,7 @@
     function enterWorld() {
       if (!isReady || hasEnteredWorld) return;
       hasEnteredWorld = true;
+      mainTickLastTime = 0;
       loader.classList.add("is-hidden");
       soundEnabled = true;
       updateSoundToggleUI();
@@ -4294,8 +4382,9 @@
       otherProjectsGalleryRendered = true;
       otherProjectsGallery.innerHTML = "";
 
-      const selectedItems = Object.entries(OTHER_PROJECT_ASSETS)
-        .flatMap(([category, assets]) => assets.map((src) => ({ category, src })));
+      // Local recording mode: show only photo works in the page5 gallery.
+      const selectedItems = OTHER_PROJECT_ASSETS.photography
+        .map((src) => ({ category: "photography", src }));
 
       selectedItems.forEach((item, index) => {
         const card = document.createElement("figure");
@@ -4451,6 +4540,8 @@
     let isPointerDown = false;
     let isOverInteractive = false;
     let cursorTrailVisible = true;
+    let cursorTrailRaf = null;
+    let cursorTrailFramesRemaining = 0;
     const trailPoints = [];
     const mouse = { x: 0, y: 0 };
 
@@ -4479,12 +4570,10 @@
     }
 
     function drawCursorTrail() {
+      cursorTrailRaf = null;
       cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
 
-      if (cursorTrailVisible) {
-        trailPoints.push({ x: mouse.x, y: mouse.y });
-        if (trailPoints.length > CURSOR_TRAIL.length) trailPoints.shift();
-
+      if (cursorTrailVisible && cursorTrailFramesRemaining > 0) {
         for (let i = 0; i < trailPoints.length; i++) {
           const p = trailPoints[i];
 
@@ -4499,18 +4588,32 @@
           cursorCtx.arc(p.x, p.y, CURSOR_TRAIL.maxRadius * alpha, 0, Math.PI * 2);
           cursorCtx.fill();
         }
+
+        cursorTrailFramesRemaining--;
+        cursorTrailRaf = requestAnimationFrame(drawCursorTrail);
+        return;
       }
 
-      requestAnimationFrame(drawCursorTrail);
+      trailPoints.length = 0;
+    }
+
+    function scheduleCursorTrail() {
+      cursorTrailFramesRemaining = CURSOR_TRAIL.length + 4;
+      if (cursorTrailRaf === null) {
+        cursorTrailRaf = requestAnimationFrame(drawCursorTrail);
+      }
     }
 
     document.addEventListener("pointermove", (event) => {
       mouse.x = event.clientX;
       mouse.y = event.clientY;
+      trailPoints.push({ x: mouse.x, y: mouse.y });
+      if (trailPoints.length > CURSOR_TRAIL.length) trailPoints.shift();
       cursor.style.left = `${event.clientX}px`;
       cursor.style.top = `${event.clientY}px`;
       isOverInteractive = isInteractiveTarget(event.target);
       updateCursorState();
+      scheduleCursorTrail();
     });
 
     document.addEventListener("pointerdown", () => {
@@ -4528,6 +4631,12 @@
         cursor.style.opacity = "0";
         cursorTrailVisible = false;
         trailPoints.length = 0;
+        cursorTrailFramesRemaining = 0;
+        if (cursorTrailRaf !== null) {
+          cancelAnimationFrame(cursorTrailRaf);
+          cursorTrailRaf = null;
+        }
+        cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
       }
     });
 
@@ -4538,7 +4647,6 @@
 
     setCursorState("default");
     resizeCursorCanvas();
-    drawCursorTrail();
 
     /* ═══════════════════════════════════════════
        初始化
@@ -4556,8 +4664,9 @@
     });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("wheel", handleWheel, { passive: false });
+    document.addEventListener("visibilitychange", syncDocumentActivity);
 
-    requestAnimationFrame(tick);
+    mainTickRaf = requestAnimationFrame(tick);
     ensurePage1Background();
     ensurePage3Background();
 
@@ -4592,6 +4701,6 @@
       python3 -m http.server 8123
     */
   </script>
-  <script src="portfolio-module.js"></script>
+  <script src="portfolio-module.js?v=20260721-perf2"></script>
 </body>
 </html>
