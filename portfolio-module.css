@@ -1983,7 +1983,9 @@
 
 .pt-intro-tab-panel {
   padding-bottom: 0.75rem;
-  animation: pt-panel-in 0.22s ease both;
+  opacity: 1;
+  transform: none;
+  animation: none;
 }
 
 .pt-intro-tab-panel[hidden] {

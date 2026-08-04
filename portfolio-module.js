@@ -48,7 +48,7 @@
   var touchLastY = 0;
   var swipeTracking = false;
   var visualRenderId = 0;
-  var IMAGE_CACHE_VERSION = "20260805-content4";
+  var IMAGE_CACHE_VERSION = "20260805-content5";
   var imagePreloadCache = new Map();
   var SWIPE_THRESHOLD = 48;
   var SWIPE_MAX_VERTICAL = 72;
