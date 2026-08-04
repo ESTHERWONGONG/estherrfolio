@@ -1905,6 +1905,9 @@
 }
 
 .pt-intro-tabs {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
   margin-top: clamp(0.85rem, 1.4vh, 1.1rem);
 }
 
@@ -1973,7 +1976,13 @@
   font-weight: 700;
 }
 
+.pt-intro-tab-panels,
 .pt-intro-tab-panel {
+  min-height: clamp(10rem, 24vh, 16rem);
+}
+
+.pt-intro-tab-panel {
+  padding-bottom: 0.75rem;
   animation: pt-panel-in 0.22s ease both;
 }
 

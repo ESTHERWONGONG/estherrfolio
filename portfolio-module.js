@@ -48,7 +48,7 @@
   var touchLastY = 0;
   var swipeTracking = false;
   var visualRenderId = 0;
-  var IMAGE_CACHE_VERSION = "20260805-content3";
+  var IMAGE_CACHE_VERSION = "20260805-content4";
   var imagePreloadCache = new Map();
   var SWIPE_THRESHOLD = 48;
   var SWIPE_MAX_VERTICAL = 72;
@@ -1763,9 +1763,7 @@
     var introSections = page.introSections && page.introSections.length
       ? page.introSections
       : buildIntroSectionsFromBody(page.body);
-    // Always render the full case-study copy. The former tab layout could
-    // leave its active panel outside the usable content height.
-    var useCollapse = false;
+    var useCollapse = Boolean(page.collapsibleSections);
 
     if (!introSections || !introSections.length) {
       modalIntro.textContent = page.body || "";
