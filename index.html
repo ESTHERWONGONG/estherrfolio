@@ -99,6 +99,28 @@
       transform-origin: center center;
     }
 
+    #page23Video {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: 0;
+      object-fit: cover;
+      object-position: center;
+      background: #000;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    #page23Video.is-active {
+      opacity: 1;
+      visibility: visible;
+    }
+
     #bgCanvas.is-page1-breathe {
       animation: page1-canvas-breathe 8s ease-in-out infinite;
       will-change: transform;
@@ -351,7 +373,8 @@
       animation-play-state: paused !important;
     }
 
-    body.is-backgrounded canvas {
+    body.is-backgrounded canvas,
+    body.is-backgrounded #page23Video {
       visibility: hidden;
     }
 
@@ -1792,6 +1815,13 @@
         contain: layout paint;
       }
 
+      /* Page 2 内的项目详情使用 fixed 全屏弹窗；打开时解除包含块，避免弹窗随页面偏移。 */
+      body.pt-modal-lock #page-2,
+      body.other-projects-open #page-2 {
+        contain: none;
+        overflow: visible;
+      }
+
       .cursor,
       #cursor-canvas {
         display: none !important;
@@ -1887,6 +1917,10 @@
         animation: none !important;
       }
 
+      #page23Video {
+        object-position: center center;
+      }
+
       .page4-preview-layer,
       .page4-ripple-layer,
       .page4-ball-ring {
@@ -1946,7 +1980,7 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="portfolio-module.css?v=20260805-content5">
+  <link rel="stylesheet" href="portfolio-module.css?v=20260805-content6">
 </head>
 <body>
   <div class="cursor cursor-default" id="cursor" aria-hidden="true"></div>
@@ -1954,7 +1988,7 @@
   <div class="loader" id="loader">
     <p class="loader__percent" id="loaderPercent">0%</p>
     <div class="loader__bar"><span id="loaderProgress"></span></div>
-    <p class="loader__text" id="loaderText">Loading frames 0 / 450</p>
+    <p class="loader__text" id="loaderText">Preparing the opening scene</p>
     <button class="loader__enter-btn" id="loaderEnterBtn" type="button">
       <span>进入世界</span>
       <span>Enter World</span>
@@ -1962,6 +1996,21 @@
   </div>
 
   <canvas id="bgCanvas"></canvas>
+  <video
+    id="page23Video"
+    preload="metadata"
+    muted
+    playsinline
+    webkit-playsinline
+    aria-hidden="true"
+  >
+    <source
+      src="outputs/assets/videos/page2-page3-mobile.mp4"
+      media="(max-width: 720px)"
+      type="video/mp4"
+    >
+    <source src="outputs/assets/videos/page2-page3.mp4" type="video/mp4">
+  </video>
   <canvas id="cursor-canvas"></canvas>
   <audio id="bgAudio" preload="auto" loop></audio>
 
@@ -2795,7 +2844,6 @@
       videoPages: 3,
       totalPages: 5,
       totalFrames: 450,     // 15s × 30fps
-      videoFile: "hero-video.mp4",
       framePath: (i) => `frames/frame_${String(i).padStart(4, "0")}.webp`,
 
       // 文字动画
@@ -2813,11 +2861,10 @@
     };
 
     /* ═══════════════════════════════════════════
-       时间节点（hero-video.mp4 ≈ 15s，30fps，共 450 帧）
-       前三页各 5s / 150 帧；Page 4 为静态页
-       Page 1：帧 1–150    （0s → 5s）
-       Page 2：帧 151–300  （5s → 10s）
-       Page 3：帧 301–450  （10s → 15s）
+       时间节点（原始 hero-video.mp4 ≈ 15s，30fps）
+       Page 1：保留帧序列，支持滚动控制（原视频 0s → 5s）
+       Page 2：H.264 连续播放 0s → 5s（原视频 5s → 10s）
+       Page 3：H.264 连续播放 5s → 10.1s（原视频 10s → 15.1s）
        Page 4：静态背景页（无视频）
        ═══════════════════════════════════════════ */
     const NODES = [
@@ -2869,6 +2916,7 @@
        ═══════════════════════════════════════════ */
     const canvas = document.getElementById("bgCanvas");
     const ctx = canvas.getContext("2d");
+    const page23Video = document.getElementById("page23Video");
     const pageSections = NODES.map((_, i) => document.getElementById(`page-${i + 1}`));
     const pageContents = NODES.map((_, i) => document.getElementById(`page${i + 1}Content`));
     const loader = document.getElementById("loader");
@@ -2913,6 +2961,10 @@
     const PAGE3_INDEX = 2;
     const PAGE4_INDEX = 3;
     const PAGE5_INDEX = 4;
+    const PAGE23_VIDEO_SEGMENTS = {
+      [PAGE2_INDEX]: { start: 0, end: 5 },
+      [PAGE3_INDEX]: { start: 5, end: 10.1 },
+    };
     const PAGE1_BG_PATH = "outputs/assets/images/page1/bg1_1.webp";
     const PAGE3_BG_PATH = "outputs/assets/images/page3/page3_bg.webp";
     const PAGE4_SCRATCH_BRUSH_RADIUS = 33;
@@ -2961,6 +3013,8 @@
     let page3BgImage = null;
     let page3BgPromise = null;
     let mainTickRaf = null;
+    let activeSegmentVideoPage = -1;
+    let segmentVideoSeekRequest = 0;
 
     const pagePlayback = NODES.map((node) => ({
       frame: node.video !== false ? node.startFrame : CONFIG.totalFrames,
@@ -3027,6 +3081,59 @@
 
     function isVideoPage(pageIndex) {
       return NODES[pageIndex].video !== false;
+    }
+
+    function isFrameSequencePage(pageIndex) {
+      return pageIndex === PAGE1_INDEX;
+    }
+
+    function isSegmentVideoPage(pageIndex) {
+      return Boolean(PAGE23_VIDEO_SEGMENTS[pageIndex]);
+    }
+
+    function setSegmentVideoPosition(pageIndex, time, shouldPlay = false) {
+      if (!page23Video || !isSegmentVideoPage(pageIndex)) return;
+      const segment = PAGE23_VIDEO_SEGMENTS[pageIndex];
+      const requestId = ++segmentVideoSeekRequest;
+      const applyPosition = () => {
+        if (requestId !== segmentVideoSeekRequest) return;
+        const targetTime = clamp(time, segment.start, segment.end);
+        activeSegmentVideoPage = pageIndex;
+        page23Video.pause();
+
+        const beginPlayback = () => {
+          if (requestId !== segmentVideoSeekRequest || !shouldPlay) return;
+          page23Video.play().catch(() => {});
+        };
+
+        if (shouldPlay && Math.abs(page23Video.currentTime - targetTime) > 0.01) {
+          page23Video.addEventListener("seeked", beginPlayback, { once: true });
+          page23Video.currentTime = targetTime;
+          return;
+        }
+
+        page23Video.currentTime = targetTime;
+        beginPlayback();
+      };
+
+      if (page23Video.readyState >= 1) {
+        applyPosition();
+        return;
+      }
+
+      page23Video.addEventListener("loadedmetadata", applyPosition, { once: true });
+      page23Video.load();
+    }
+
+    function enterSegmentVideoPage(pageIndex) {
+      const node = NODES[pageIndex];
+      const segment = PAGE23_VIDEO_SEGMENTS[pageIndex];
+      resetPagePlayback(pageIndex);
+      pagePlayback[pageIndex].frame = node.startFrame;
+      currentFrame = node.startFrame;
+      displayedFrame = -1;
+      activeSegmentVideoPage = pageIndex;
+      setSegmentVideoPosition(pageIndex, segment.start, true);
     }
 
     function getPageFrameSpan(pageIndex) {
@@ -3124,38 +3231,50 @@
     }
 
     function preservePage2PlaybackState(lockedScrollY = window.scrollY) {
+      const activePageIndex = getActivePageIndex();
+      const playbackPageIndex = isSegmentVideoPage(activePageIndex)
+        ? activePageIndex
+        : PAGE2_INDEX;
       preservedPage2PlaybackState = {
-        activePageIndex: getActivePageIndex(),
-        frame: pagePlayback[PAGE2_INDEX].frame,
-        done: pagePlayback[PAGE2_INDEX].done,
+        activePageIndex,
+        playbackPageIndex,
+        frame: pagePlayback[playbackPageIndex].frame,
+        done: pagePlayback[playbackPageIndex].done,
+        videoTime: page23Video?.currentTime ?? PAGE23_VIDEO_SEGMENTS[playbackPageIndex]?.start ?? 0,
         lastPageIndex,
         lockedScrollY,
         currentFrame,
         displayedFrame,
       };
+      if (isSegmentVideoPage(activePageIndex)) page23Video?.pause();
     }
 
     function restorePage2PlaybackState(lockedScrollY = window.scrollY) {
       if (!preservedPage2PlaybackState) return;
 
       const restoreState = preservedPage2PlaybackState;
-      const page2Node = NODES[PAGE2_INDEX];
+      const playbackPageIndex = restoreState.playbackPageIndex ?? PAGE2_INDEX;
+      const playbackNode = NODES[playbackPageIndex];
       const frame = restoreState.done
-        ? page2Node.endFrame
-        : clamp(restoreState.frame, page2Node.startFrame, page2Node.endFrame);
+        ? playbackNode.endFrame
+        : clamp(restoreState.frame, playbackNode.startFrame, playbackNode.endFrame);
 
       window.scrollTo(0, restoreState.lockedScrollY ?? lockedScrollY);
-      pagePlayback[PAGE2_INDEX].frame = frame;
-      pagePlayback[PAGE2_INDEX].done = restoreState.done;
-      lastPageIndex = restoreState.activePageIndex === PAGE2_INDEX
-        ? PAGE2_INDEX
+      pagePlayback[playbackPageIndex].frame = frame;
+      pagePlayback[playbackPageIndex].done = restoreState.done;
+      lastPageIndex = isSegmentVideoPage(restoreState.activePageIndex)
+        ? playbackPageIndex
         : restoreState.lastPageIndex;
       lastScrollY = restoreState.lockedScrollY ?? lockedScrollY;
 
-      if (restoreState.activePageIndex === PAGE2_INDEX) {
+      if (isSegmentVideoPage(restoreState.activePageIndex)) {
         currentFrame = frame;
         displayedFrame = -1;
-        renderFrame(frame);
+        setSegmentVideoPosition(
+          playbackPageIndex,
+          restoreState.videoTime,
+          !restoreState.done
+        );
       } else {
         currentFrame = restoreState.currentFrame ?? currentFrame;
         displayedFrame = restoreState.displayedFrame ?? displayedFrame;
@@ -3166,12 +3285,21 @@
 
     function updateCanvasVisibility() {
       const activeIndex = getStableActivePageIndex();
-      if (activeIndex !== PAGE3_INDEX || !pagePlayback[PAGE3_INDEX].done) {
+      const showPage3Background = activeIndex === PAGE3_INDEX
+        && pagePlayback[PAGE3_INDEX].done;
+      const showCanvas = activeIndex === PAGE1_INDEX || showPage3Background;
+      const showSegmentVideo = isSegmentVideoPage(activeIndex) && !showPage3Background;
+
+      if (!showPage3Background) {
         setPage3CanvasZoom(false);
       }
       setPage1CanvasBreathe(activeIndex === PAGE1_INDEX);
-      const onStaticPage = !isVideoPage(activeIndex);
-      canvas.style.opacity = onStaticPage ? "0" : "1";
+      canvas.style.opacity = showCanvas ? "1" : "0";
+      page23Video?.classList.toggle("is-active", showSegmentVideo);
+
+      if (!showSegmentVideo && isSegmentVideoPage(activeSegmentVideoPage)) {
+        page23Video?.pause();
+      }
     }
 
     /* ═══════════════════════════════════════════
@@ -4198,6 +4326,7 @@
       }
 
       if (isPagePlaybackSuspended()) {
+        page23Video?.pause();
         const suspendedPageIndex = preservedPage2PlaybackState?.activePageIndex ?? lastPageIndex;
 
         if (isVideoPage(suspendedPageIndex)) {
@@ -4234,6 +4363,8 @@
 
         if (pageIndex === PAGE1_INDEX && pagePlayback[PAGE1_INDEX].done) {
           // Page 1 已播完：回到首页时保持最后一帧
+        } else if (isSegmentVideoPage(pageIndex)) {
+          enterSegmentVideoPage(pageIndex);
         } else if (isVideoPage(pageIndex)) {
           enterVideoPage(pageIndex);
         } else {
@@ -4254,6 +4385,23 @@
 
       if (pageIndex === PAGE1_INDEX && pb.done) {
         currentFrame = node.endFrame;
+        return;
+      }
+
+      if (isSegmentVideoPage(pageIndex)) {
+        const segment = PAGE23_VIDEO_SEGMENTS[pageIndex];
+        const segmentDuration = segment.end - segment.start;
+        const videoTime = clamp(page23Video?.currentTime ?? segment.start, segment.start, segment.end);
+        const progress = clamp((videoTime - segment.start) / segmentDuration, 0, 1);
+
+        pb.frame = node.startFrame + getPageFrameSpan(pageIndex) * progress;
+        if (videoTime >= segment.end - 1 / CONFIG.fps) {
+          page23Video?.pause();
+          pb.frame = node.endFrame;
+          pb.done = true;
+        }
+
+        currentFrame = pb.frame;
         return;
       }
 
@@ -4278,7 +4426,8 @@
       lastScrollY = currentScrollY;
     }
 
-    const MAIN_TICK_ACTIVE_INTERVAL = 1000 / 30;
+    // Mobile 用 24fps 更新 UI 状态；视频仍由浏览器硬解连续播放 30fps。
+    const MAIN_TICK_ACTIVE_INTERVAL = 1000 / (IS_MOBILE ? 24 : 30);
     const MAIN_TICK_IDLE_INTERVAL = 1000 / 10;
     let mainTickLastTime = 0;
 
@@ -4308,15 +4457,11 @@
       updatePlayback(deltaSeconds);
       updateCanvasVisibility();
 
-      if (isVideoPage(activeIndex)) {
+      if (isFrameSequencePage(activeIndex)) {
         preloadAroundFrame(currentFrame);
         if (shouldShowPage1Background()) {
           if (!isShowingPage1Background) {
             renderPage1Background();
-          }
-        } else if (shouldShowPage3Background()) {
-          if (!isShowingPage3Background) {
-            renderPage3Background();
           }
         } else if (
           Math.round(displayedFrame) !== Math.round(currentFrame)
@@ -4325,6 +4470,8 @@
         ) {
           renderFrame(currentFrame);
         }
+      } else if (shouldShowPage3Background() && !isShowingPage3Background) {
+        renderPage3Background();
       }
 
       updateContentUI();
@@ -4341,12 +4488,17 @@
           mainTickRaf = null;
         }
         releaseFrameCache(Math.round(currentFrame));
+        page23Video?.pause();
         if (bgAudio && !bgAudio.paused) bgAudio.pause();
         return;
       }
 
       mainTickLastTime = 0;
       if (mainTickRaf === null) mainTickRaf = requestAnimationFrame(tick);
+      const activeIndex = getStableActivePageIndex();
+      if (isSegmentVideoPage(activeIndex) && !pagePlayback[activeIndex].done) {
+        page23Video?.play().catch(() => {});
+      }
       syncAudio();
     }
 
@@ -4379,7 +4531,7 @@
       window.scrollTo(0, targetY);
       lastScrollY = targetY;
       lastPageIndex = PAGE2_INDEX;
-      renderFrame(node.endFrame);
+      setSegmentVideoPosition(PAGE2_INDEX, PAGE23_VIDEO_SEGMENTS[PAGE2_INDEX].end, false);
       snapPageContentToIndex(PAGE2_INDEX);
       updateCanvasVisibility();
       updateContentUI();
@@ -4440,6 +4592,11 @@
     function enterWorld() {
       if (!isReady || hasEnteredWorld) return;
       hasEnteredWorld = true;
+      // 用户观看 / 操作 Page 1 时在后台缓冲 Page 2/3，避免切页才开始下载。
+      if (page23Video) {
+        page23Video.preload = "auto";
+        page23Video.load();
+      }
       mainTickLastTime = 0;
       loader.classList.add("is-hidden");
       soundEnabled = true;
@@ -4884,14 +5041,24 @@
     });
 
     /*
-      拆帧命令（在项目根目录执行，15s 视频 → 450 帧 @ 30fps）：
+      Page 1 拆帧命令（只需保留原视频前 5 秒的 150 帧）：
       mkdir -p frames
       ffmpeg -y -i "outputs/assets/videos/hero-video.mp4" -an \
-        -vf "fps=30,scale=1920:-1" -frames:v 450 \
+        -vf "fps=30,scale=1920:-1" -frames:v 150 \
         -c:v libwebp -q:v 72 -compression_level 4 \
         frames/frame_%04d.webp
 
-      拆完后确认 CONFIG.totalFrames = 450，前三页各 150 帧（5s）
+      Page 2/3 使用一个支持快速起播与精确分段定位的 H.264 文件：
+      ffmpeg -y -ss 5 -i "outputs/assets/videos/hero-video.mp4" -t 10.166667 -an \
+        -vf "scale=1920:-2" -r 30 -c:v libx264 -preset medium -crf 23 \
+        -pix_fmt yuv420p -g 15 -keyint_min 15 -sc_threshold 0 -movflags +faststart \
+        "outputs/assets/videos/page2-page3.mp4"
+
+      移动端使用 720 × 1280 竖屏裁切版本，降低下载与解码压力：
+      ffmpeg -y -i "outputs/assets/videos/page2-page3.mp4" -an \
+        -vf "scale=-2:1280,crop=720:1280" -r 30 -c:v libx264 -preset medium -crf 24 \
+        -pix_fmt yuv420p -g 15 -keyint_min 15 -sc_threshold 0 -movflags +faststart \
+        "outputs/assets/videos/page2-page3-mobile.mp4"
 
       本地运行：
       python3 -m http.server 8123

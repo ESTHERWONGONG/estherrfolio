@@ -2163,6 +2163,14 @@ body.pt-modal-lock .nav {
 }
 
 @media (max-width: 760px) {
+  .pt-modal-panel {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    padding-top: max(var(--pt-modal-panel-pad), env(safe-area-inset-top));
+    padding-bottom: max(var(--pt-modal-panel-pad), env(safe-area-inset-bottom));
+  }
+
   .pt-cover,
   .pt-after {
     min-height: 72vh;
