@@ -1946,7 +1946,7 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="portfolio-module.css?v=20260721-perf2">
+  <link rel="stylesheet" href="portfolio-module.css?v=20260805-content3">
 </head>
 <body>
   <div class="cursor cursor-default" id="cursor" aria-hidden="true"></div>
@@ -2931,9 +2931,9 @@
       graphic: [
         "outputs/assets/images/others/poster/01.png",
         "outputs/assets/images/others/poster/02.png",
-        "outputs/assets/images/others/poster/03.png",
-        "outputs/assets/images/others/poster/04.png",
-        "outputs/assets/images/others/poster/05.png",
+        "outputs/assets/images/others/poster/06.webp",
+        "outputs/assets/images/others/poster/07.webp",
+        "outputs/assets/images/others/poster/08.webp",
       ],
       photography: [
         "outputs/assets/images/others/photo/ph_01.jpeg",
@@ -4574,9 +4574,8 @@
       otherProjectsGalleryRendered = true;
       otherProjectsGallery.innerHTML = "";
 
-      // Local recording mode: show only photo works in the page5 gallery.
-      const selectedItems = OTHER_PROJECT_ASSETS.photography
-        .map((src) => ({ category: "photography", src }));
+      const selectedItems = Object.entries(OTHER_PROJECT_ASSETS)
+        .flatMap(([category, assets]) => assets.map((src) => ({ category, src })));
 
       selectedItems.forEach((item, index) => {
         const card = document.createElement("figure");
@@ -4898,6 +4897,6 @@
       python3 -m http.server 8123
     */
   </script>
-  <script src="portfolio-module.js?v=20260721-perf2"></script>
+  <script src="portfolio-module.js?v=20260805-content3"></script>
 </body>
 </html>
