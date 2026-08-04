@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>URANUSN — Portfolio</title>
   <style>
     @font-face {
@@ -1770,6 +1770,154 @@
     }
 
     @media (max-width: 720px) {
+      :root {
+        --nav-h: 58px;
+      }
+
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        overscroll-behavior-y: none;
+      }
+
+      body {
+        cursor: auto;
+        touch-action: pan-y;
+      }
+
+      .page {
+        overflow: hidden;
+        contain: layout paint;
+      }
+
+      .cursor,
+      #cursor-canvas {
+        display: none !important;
+      }
+
+      .nav {
+        height: calc(var(--nav-h) + env(safe-area-inset-top));
+        padding: env(safe-area-inset-top) 14px 0;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.76), transparent);
+      }
+
+      .nav__logo {
+        height: 25px;
+      }
+
+      .nav__links {
+        right: 14px;
+        max-width: calc(100vw - 112px);
+        overflow: visible;
+      }
+
+      .nav__links a {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-underline-offset: 0.22em;
+      }
+
+      .nav__sep {
+        margin-inline: 7px;
+      }
+
+      .nav__sep img {
+        height: 5px;
+      }
+
+      .nav__dropdown-menu {
+        left: auto;
+        right: -4px;
+        min-width: 174px;
+        transform: none;
+      }
+
+      .nav__dropdown.is-open .nav__dropdown-menu {
+        transform: translateY(0);
+      }
+
+      .nav__dropdown-menu::before {
+        left: auto;
+        right: 30px;
+      }
+
+      .page__content--left {
+        left: 22px;
+        top: 56%;
+        width: min(68vw, 330px);
+        max-width: none;
+      }
+
+      .page__folio-img {
+        animation-duration: 4.8s;
+      }
+
+      .loader {
+        gap: 15px;
+        padding: max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+      }
+
+      .loader__text {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+      }
+
+      .loader__enter-btn {
+        bottom: calc(max(28px, env(safe-area-inset-bottom)) + 42px);
+        width: min(86vw, 390px);
+        min-height: 52px;
+        padding: 13px 24px;
+        backdrop-filter: none;
+      }
+
+      .scroll-hint {
+        bottom: max(14px, env(safe-area-inset-bottom));
+        font-size: 9px;
+        letter-spacing: 0.22em;
+      }
+
+      #bgCanvas,
+      .page4-scene,
+      .page5-scene {
+        animation: none !important;
+      }
+
+      .page4-preview-layer,
+      .page4-ripple-layer,
+      .page4-ball-ring {
+        display: none !important;
+      }
+
+      .page4-ball {
+        filter: none !important;
+        transition: opacity 700ms ease !important;
+      }
+
+      .page-turn-curl,
+      .page-turn-stage::before,
+      .page-turn-stage::after {
+        display: none;
+      }
+
+      .page5-right-eye-window,
+      .page5-second-eye-window {
+        --page5-eye-size: clamp(82px, 22vw, 118px);
+      }
+
+      .other-projects-gallery {
+        grid-template-columns: 1fr;
+        padding-right: 2px;
+      }
+
+      .other-project-card img {
+        animation: none !important;
+      }
+
       .intro-modal__stage {
         padding: 14px;
       }
@@ -2638,6 +2786,9 @@
     /* ═══════════════════════════════════════════
        可调参数 CONFIG
        ═══════════════════════════════════════════ */
+    const MOBILE_QUERY = window.matchMedia("(max-width: 720px), (pointer: coarse)");
+    const IS_MOBILE = MOBILE_QUERY.matches;
+
     const CONFIG = {
       fps: 30,
       framesPerPage: 150,   // 5s × 30fps
@@ -2655,10 +2806,10 @@
       textTransitionSmooth: 0.12,
 
       // 预加载
-      preloadAhead: 12,
-      preloadBehind: 4,
-      initialPreloadFrames: 18,
-      maxResidentFrames: 28,
+      preloadAhead: IS_MOBILE ? 7 : 12,
+      preloadBehind: IS_MOBILE ? 2 : 4,
+      initialPreloadFrames: IS_MOBILE ? 10 : 18,
+      maxResidentFrames: IS_MOBILE ? 18 : 28,
     };
 
     /* ═══════════════════════════════════════════
@@ -3169,7 +3320,7 @@
        Canvas 渲染
        ═══════════════════════════════════════════ */
     function resizeCanvas() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = IS_MOBILE ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.floor(window.innerWidth * dpr);
       canvas.height = Math.floor(window.innerHeight * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -3210,7 +3361,7 @@
 
     function resizePage4PreviewCanvas() {
       if (!page4PreviewLayer || !page4PreviewCtx) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = IS_MOBILE ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
       page4PreviewLayer.width = Math.floor(window.innerWidth * dpr);
       page4PreviewLayer.height = Math.floor(window.innerHeight * dpr);
       page4PreviewCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -3734,6 +3885,11 @@
       if (fromIndex !== PAGE4_INDEX || toIndex !== PAGE5_INDEX) return;
       if (!pageTurnStage || !pageTurnCurl) return;
 
+      if (IS_MOBILE) {
+        resetPageTurn();
+        return;
+      }
+
       resetPageTurn();
       pageTurnStage.classList.add("is-dissolving");
       if (page5Scene) {
@@ -3990,6 +4146,42 @@
       startSectionScroll(targetIndex);
     }
 
+    let pageTouchStartX = 0;
+    let pageTouchStartY = 0;
+    let pageTouchStartedAt = 0;
+    let pageTouchStartIndex = 0;
+
+    function shouldIgnorePageSwipe(target) {
+      return target instanceof Element && Boolean(target.closest(
+        "#introModal, #otherProjectsModal, [data-pt-modal], button, a, input, textarea, select, [contenteditable='true']"
+      ));
+    }
+
+    function handlePageTouchStart(event) {
+      if (!IS_MOBILE || event.touches.length !== 1 || shouldIgnorePageSwipe(event.target)) return;
+      const touch = event.touches[0];
+      pageTouchStartX = touch.clientX;
+      pageTouchStartY = touch.clientY;
+      pageTouchStartedAt = performance.now();
+      pageTouchStartIndex = getActivePageIndex();
+    }
+
+    function handlePageTouchEnd(event) {
+      if (!IS_MOBILE || !pageTouchStartedAt || event.changedTouches.length !== 1) return;
+      const touch = event.changedTouches[0];
+      const deltaX = touch.clientX - pageTouchStartX;
+      const deltaY = touch.clientY - pageTouchStartY;
+      const elapsed = performance.now() - pageTouchStartedAt;
+      pageTouchStartedAt = 0;
+
+      if (elapsed > 850 || Math.abs(deltaY) < 52 || Math.abs(deltaY) <= Math.abs(deltaX) * 1.15) return;
+      if (isSectionScrolling || isScrollLocked || isPagePlaybackSuspended()) return;
+
+      const direction = deltaY < 0 ? 1 : -1;
+      const targetIndex = clamp(pageTouchStartIndex + direction, 0, NODES.length - 1);
+      if (targetIndex !== pageTouchStartIndex) startSectionScroll(targetIndex);
+    }
+
     function enterVideoPage(pageIndex) {
       const node = NODES[pageIndex];
       resetPagePlayback(pageIndex);
@@ -4214,7 +4406,7 @@
       if (!AUDIO_ENABLED || !bgAudio) return;
       bgAudio.src = BACKGROUND_AUDIO_SRC;
       bgAudio.loop = true;
-      bgAudio.preload = "auto";
+      bgAudio.preload = IS_MOBILE ? "metadata" : "auto";
       bgAudio.muted = false;
       bgAudio.volume = 1;
     }
@@ -4286,7 +4478,7 @@
       }
     });
 
-    if (page4Scene) {
+    if (page4Scene && !IS_MOBILE) {
       page4Scene.addEventListener("mouseenter", (event) => {
         const point = getPage4LocalPoint(event);
         page4LastTrailPoint = point;
@@ -4309,7 +4501,7 @@
       });
     }
 
-    if (page5RightEyeWindow) {
+    if (page5RightEyeWindow && !IS_MOBILE) {
       window.addEventListener("pointermove", handlePage5EyePointerMove, { passive: true });
       window.addEventListener("pointerleave", resetPage5Eye);
       window.addEventListener("blur", resetPage5Eye);
@@ -4605,6 +4797,7 @@
     }
 
     document.addEventListener("pointermove", (event) => {
+      if (IS_MOBILE || event.pointerType === "touch") return;
       mouse.x = event.clientX;
       mouse.y = event.clientY;
       trailPoints.push({ x: mouse.x, y: mouse.y });
@@ -4616,12 +4809,14 @@
       scheduleCursorTrail();
     });
 
-    document.addEventListener("pointerdown", () => {
+    document.addEventListener("pointerdown", (event) => {
+      if (IS_MOBILE || event.pointerType === "touch") return;
       isPointerDown = true;
       updateCursorState();
     });
 
-    document.addEventListener("pointerup", () => {
+    document.addEventListener("pointerup", (event) => {
+      if (IS_MOBILE || event.pointerType === "touch") return;
       isPointerDown = false;
       updateCursorState();
     });
@@ -4664,6 +4859,8 @@
     });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("wheel", handleWheel, { passive: false });
+    document.addEventListener("touchstart", handlePageTouchStart, { passive: true });
+    document.addEventListener("touchend", handlePageTouchEnd, { passive: true });
     document.addEventListener("visibilitychange", syncDocumentActivity);
 
     mainTickRaf = requestAnimationFrame(tick);
